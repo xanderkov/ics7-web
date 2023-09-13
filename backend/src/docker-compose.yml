@@ -1,0 +1,25 @@
+version: '3.3'
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres-hospital
+    environment:
+      POSTGRES_PASSWORD: postgres
+      PG_PASSWORD: postgres
+      POSTGRES_DB: hospital
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - /Users/akovel/Documents/bmstu/postgress-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  hospital:
+    build: .
+    image: hospital:latest
+    depends_on:
+      - postgres
+    container_name: hospital
+    env_file:
+      - .env
+    restart: always
