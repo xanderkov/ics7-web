@@ -6,6 +6,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
+	"hospital/docs"
 	"hospital/internal/modules/config"
 	"hospital/internal/modules/view/rest-api/controller"
 )
@@ -31,8 +32,9 @@ import (
 // @externalDocs.url          https://swagger.io/resources/open-api/
 
 func api(controller *controller.Controller, cfg config.Config, logger *zap.Logger) {
+	address := fmt.Sprintf("localhost:%d", cfg.ApiPort)
+	logger.Info("Server started on address: " + address)
 	r := gin.Default()
-
 	c := controller
 
 	v1 := r.Group("/api/v1")
@@ -43,8 +45,12 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 		}
 		//...
 	}
+
+	docs.SwaggerInfo.Title = "Swagger Example API"
+	docs.SwaggerInfo.Description = "This is a sample server Petstore server."
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Host = "petstore.swagger.io"
+	docs.SwaggerInfo.BasePath = "/v2"
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	address := fmt.Sprintf("localhost:%d", cfg.ApiPort)
 	r.Run(address)
-	logger.Info("Server started on address: " + address)
 }

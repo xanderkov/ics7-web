@@ -2,7 +2,7 @@ package telegram
 
 import (
 	"go.uber.org/fx"
-	rest_api "hospital/internal/modules/view/rest-api"
+	"hospital/internal/modules/view/rest-api"
 	"hospital/internal/modules/view/telegram"
 )
 
