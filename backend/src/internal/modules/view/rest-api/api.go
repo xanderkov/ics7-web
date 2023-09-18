@@ -7,7 +7,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 	"hospital/internal/modules/config"
-	"hospital/internal/modules/view/controllers"
+	"hospital/internal/modules/view/rest-api/controller"
 )
 
 // @title           Psycho Admin API
@@ -30,18 +30,19 @@ import (
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
 
-func Api(controller *controllers.Controller, cfg config.Config, logger *zap.Logger) {
+func api(controller *controller.Controller, cfg config.Config, logger *zap.Logger) {
 	r := gin.Default()
 
-	//c := controller
-	//
-	//v1 := r.Group("/api/v1")
-	//{
-	//	//doctors := v1.Group("/doctors")
-	//	{
-	//	}
-	//	//...
-	//}
+	c := controller
+
+	v1 := r.Group("/api/v1")
+	{
+		doctors := v1.Group("/doctors")
+		{
+			doctors.GET(":id", c.ShowAccount)
+		}
+		//...
+	}
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	address := fmt.Sprintf("localhost:%d", cfg.ApiPort)
 	r.Run(address)

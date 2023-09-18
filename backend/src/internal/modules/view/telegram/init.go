@@ -10,7 +10,7 @@ import (
 	disease_dto "hospital/internal/modules/domain/disease/dto"
 	patient_dto "hospital/internal/modules/domain/patient/dto"
 	room_dto "hospital/internal/modules/domain/room/dto"
-	"hospital/internal/modules/view/controllers"
+	"hospital/internal/modules/view/telegram/controllers"
 	"strconv"
 )
 
@@ -305,7 +305,7 @@ func handleBot(
 	}
 }
 
-func StartBot(controller *controllers.Controller, cfg config.Config, logger *zap.Logger) {
+func startBot(controller *controllers.Controller, cfg config.Config, logger *zap.Logger) {
 	dotenv := cfg.TelegramToken
 
 	bot, err := tgbotapi.NewBotAPI(dotenv)
