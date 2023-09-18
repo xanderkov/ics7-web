@@ -9,7 +9,7 @@ import (
 	"hospital/internal/modules/db"
 	"hospital/internal/modules/domain"
 	"hospital/internal/modules/logger"
-	"hospital/internal/modules/view"
+	"hospital/internal/modules/view/telegram"
 )
 
 var (
@@ -20,7 +20,7 @@ var (
 		db.Module,
 
 		domain.Module,
-		view.Module,
+		telegram.Module,
 
 		fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
 			return &fxevent.ZapLogger{Logger: log}
@@ -34,6 +34,6 @@ var (
 		db.Invokables,
 
 		domain.Invokables,
-		view.Invokables,
+		telegram.Invokables,
 	)
 )

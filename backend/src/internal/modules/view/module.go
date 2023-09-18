@@ -1,11 +1,12 @@
-package view
+package telegram
 
 import (
 	"go.uber.org/fx"
+	rest_api "hospital/internal/modules/view/rest-api"
 	"hospital/internal/modules/view/telegram"
 )
 
 var (
-	Module     = fx.Provide(telegram.Module)
-	Invokables = fx.Invoke(telegram.Invokables)
+	Module     = fx.Provide(rest_api.Module, telegram.Module)
+	Invokables = fx.Invoke(rest_api.Invokables, telegram.Invokables)
 )
