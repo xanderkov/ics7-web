@@ -1,4 +1,4 @@
-package view
+package telegram
 
 import (
 	"github.com/joho/godotenv"

@@ -3,6 +3,7 @@ version: '3.3'
 services:
   postgres:
     image: postgres:13
+    profiles: ["bd", "all"]
     container_name: postgres-hospital
     environment:
       POSTGRES_PASSWORD: postgres
@@ -16,6 +17,7 @@ services:
 
   hospital:
     build: .
+    profiles: ["backend", "all"]
     image: hospital:latest
     depends_on:
       - postgres

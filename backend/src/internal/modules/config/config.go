@@ -24,6 +24,7 @@ type Config struct {
 	TraceSQLCommands bool
 
 	TelegramToken string `envconfig:"TELEGRAM_APITOKEN"`
+	ApiPort       int    `envconfig:"API_PORT"`
 }
 
 func NewConfig(app app.App, logger *zap.Logger, logLevel zap.AtomicLevel) (Config, error) {

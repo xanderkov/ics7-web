@@ -1,4 +1,4 @@
-package view
+package telegram
 
 import (
 	"context"
@@ -305,7 +305,7 @@ func handleBot(
 	}
 }
 
-func startBot(controller *controllers.Controller, cfg config.Config, logger *zap.Logger) {
+func StartBot(controller *controllers.Controller, cfg config.Config, logger *zap.Logger) {
 	dotenv := cfg.TelegramToken
 
 	bot, err := tgbotapi.NewBotAPI(dotenv)
