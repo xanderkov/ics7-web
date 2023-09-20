@@ -20,3 +20,10 @@ type AddDoctor struct {
 	Speciality string `json:"Speciality" example:"doctor speciality"`
 	Role       string `json:"Role" example:"doctor role"`
 }
+
+type UpdateDoctor struct {
+	TokenId    string `json:"TokenId" example:"TokenId"`
+	Surname    string `json:"surname" example:"doctor surname"`
+	Speciality string `json:"Speciality" example:"doctor speciality"`
+	Role       string `json:"Role" example:"doctor role"`
+}

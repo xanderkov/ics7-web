@@ -25,8 +25,19 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 		{
 			doctors.GET(":id", c.ShowDoctor)
 			doctors.POST("", c.SingUp)
+			doctors.GET("", c.ListDoctors)
+			doctors.PATCH(":id", c.UpdateDoctor)
+			doctors.DELETE(":id", c.DeleteDoctor)
 		}
-		//...
+		patients := v1.GET("/patients")
+		{
+			patients.GET(":id", c.ShowPatient)
+			patients.GET("", c.ListPatients)
+			patients.POST("", c.AddPatient)
+			patients.PATCH(":id", c.UpdatePatient)
+			patients.DELETE(":id", c.DeletePatient)
+		}
+
 	}
 
 	docs.SwaggerInfo.Title = "Psycho Admin API"

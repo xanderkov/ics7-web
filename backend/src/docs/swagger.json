@@ -4,6 +4,100 @@
         "contact": {}
     },
     "paths": {
+        "/doctors": {
+            "get": {
+                "description": "get Doctors",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Doctors"
+                ],
+                "summary": "List Doctors",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.Doctor"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "add Doctor by json",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Doctors"
+                ],
+                "summary": "Add a Doctor",
+                "parameters": [
+                    {
+                        "description": "Add doctor",
+                        "name": "Doctor",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.AddDoctor"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Doctor"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
         "/doctors/{id}": {
             "get": {
                 "description": "get string by ID",
@@ -14,7 +108,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "doctors"
+                    "Doctors"
                 ],
                 "summary": "Show a Doctor",
                 "parameters": [
@@ -31,6 +125,362 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/dto.Doctor"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete by doctor ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Doctors"
+                ],
+                "summary": "Delete a doctor",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Doctor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/model.Doctor"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update by json doctor",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Doctors"
+                ],
+                "summary": "Update a doctor",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Doctor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update doctor",
+                        "name": "doctor",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.UpdateDoctor"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Doctor"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/patients": {
+            "get": {
+                "description": "get Patients",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Patients"
+                ],
+                "summary": "List Patients",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.Patient"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "add Patient by json",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Patients"
+                ],
+                "summary": "Add a Patient",
+                "parameters": [
+                    {
+                        "description": "Add patient",
+                        "name": "Patient",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.AddPatient"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Patient"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/patients/{id}": {
+            "get": {
+                "description": "get string by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Patients"
+                ],
+                "summary": "Show a Patient",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Patient ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Patient"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete by patient ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Patients"
+                ],
+                "summary": "Delete a patient",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Patient ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/model.Patient"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update by json patient",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Patients"
+                ],
+                "summary": "Update a patient",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Patient ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update patient",
+                        "name": "patient",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.UpdatePatient"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Patient"
                         }
                     },
                     "400": {
@@ -76,6 +526,35 @@
                 }
             }
         },
+        "dto.Patient": {
+            "type": "object",
+            "properties": {
+                "degreeOfDanger": {
+                    "type": "integer"
+                },
+                "height": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "patronymic": {
+                    "type": "string"
+                },
+                "roomNumber": {
+                    "type": "integer"
+                },
+                "surname": {
+                    "type": "string"
+                },
+                "weight": {
+                    "type": "number"
+                }
+            }
+        },
         "httputil.HTTPError": {
             "type": "object",
             "properties": {
@@ -86,6 +565,178 @@
                 "message": {
                     "type": "string",
                     "example": "status bad request"
+                }
+            }
+        },
+        "model.AddDoctor": {
+            "type": "object",
+            "properties": {
+                "Role": {
+                    "type": "string",
+                    "example": "doctor role"
+                },
+                "Speciality": {
+                    "type": "string",
+                    "example": "doctor speciality"
+                },
+                "TokenId": {
+                    "type": "string",
+                    "example": "TokenId"
+                },
+                "surname": {
+                    "type": "string",
+                    "example": "doctor surname"
+                }
+            }
+        },
+        "model.AddPatient": {
+            "type": "object",
+            "properties": {
+                "DegreeOfDanger": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "Height": {
+                    "type": "integer",
+                    "example": 180
+                },
+                "Name": {
+                    "type": "string",
+                    "example": "patient Name"
+                },
+                "Patronymic": {
+                    "type": "string",
+                    "example": "patient patronymic"
+                },
+                "RoomNumber": {
+                    "type": "integer",
+                    "example": 6
+                },
+                "Surname": {
+                    "type": "string",
+                    "example": "patient surname"
+                },
+                "Weight": {
+                    "type": "number",
+                    "example": 42
+                }
+            }
+        },
+        "model.Doctor": {
+            "type": "object",
+            "properties": {
+                "Role": {
+                    "type": "string",
+                    "example": "doctor role"
+                },
+                "Speciality": {
+                    "type": "string",
+                    "example": "doctor speciality"
+                },
+                "Surname": {
+                    "type": "string",
+                    "example": "doctor surname"
+                },
+                "TokenId": {
+                    "type": "string",
+                    "example": "TokenId"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                }
+            }
+        },
+        "model.Patient": {
+            "type": "object",
+            "properties": {
+                "DegreeOfDanger": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "Height": {
+                    "type": "integer",
+                    "example": 180
+                },
+                "Name": {
+                    "type": "string",
+                    "example": "patient Name"
+                },
+                "Patronymic": {
+                    "type": "string",
+                    "example": "patient patronymic"
+                },
+                "RoomNumber": {
+                    "type": "integer",
+                    "example": 6
+                },
+                "Surname": {
+                    "type": "string",
+                    "example": "patient surname"
+                },
+                "Weight": {
+                    "type": "number",
+                    "example": 42
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                }
+            }
+        },
+        "model.UpdateDoctor": {
+            "type": "object",
+            "properties": {
+                "Role": {
+                    "type": "string",
+                    "example": "doctor role"
+                },
+                "Speciality": {
+                    "type": "string",
+                    "example": "doctor speciality"
+                },
+                "TokenId": {
+                    "type": "string",
+                    "example": "TokenId"
+                },
+                "surname": {
+                    "type": "string",
+                    "example": "doctor surname"
+                }
+            }
+        },
+        "model.UpdatePatient": {
+            "type": "object",
+            "properties": {
+                "DegreeOfDanger": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "Height": {
+                    "type": "integer",
+                    "example": 180
+                },
+                "Name": {
+                    "type": "string",
+                    "example": "patient Name"
+                },
+                "Patronymic": {
+                    "type": "string",
+                    "example": "patient patronymic"
+                },
+                "RoomNumber": {
+                    "type": "integer",
+                    "example": 6
+                },
+                "Surname": {
+                    "type": "string",
+                    "example": "patient surname"
+                },
+                "Weight": {
+                    "type": "number",
+                    "example": 42
                 }
             }
         }

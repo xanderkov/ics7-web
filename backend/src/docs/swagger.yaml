@@ -12,6 +12,25 @@ definitions:
       tokenId:
         type: string
     type: object
+  dto.Patient:
+    properties:
+      degreeOfDanger:
+        type: integer
+      height:
+        type: integer
+      id:
+        type: integer
+      name:
+        type: string
+      patronymic:
+        type: string
+      roomNumber:
+        type: integer
+      surname:
+        type: string
+      weight:
+        type: number
+    type: object
   httputil.HTTPError:
     properties:
       code:
@@ -21,10 +40,230 @@ definitions:
         example: status bad request
         type: string
     type: object
+  model.AddDoctor:
+    properties:
+      Role:
+        example: doctor role
+        type: string
+      Speciality:
+        example: doctor speciality
+        type: string
+      TokenId:
+        example: TokenId
+        type: string
+      surname:
+        example: doctor surname
+        type: string
+    type: object
+  model.AddPatient:
+    properties:
+      DegreeOfDanger:
+        example: 1
+        type: integer
+      Height:
+        example: 180
+        type: integer
+      Name:
+        example: patient Name
+        type: string
+      Patronymic:
+        example: patient patronymic
+        type: string
+      RoomNumber:
+        example: 6
+        type: integer
+      Surname:
+        example: patient surname
+        type: string
+      Weight:
+        example: 42
+        type: number
+    type: object
+  model.Doctor:
+    properties:
+      Role:
+        example: doctor role
+        type: string
+      Speciality:
+        example: doctor speciality
+        type: string
+      Surname:
+        example: doctor surname
+        type: string
+      TokenId:
+        example: TokenId
+        type: string
+      id:
+        example: 1
+        format: int64
+        type: integer
+    type: object
+  model.Patient:
+    properties:
+      DegreeOfDanger:
+        example: 1
+        type: integer
+      Height:
+        example: 180
+        type: integer
+      Name:
+        example: patient Name
+        type: string
+      Patronymic:
+        example: patient patronymic
+        type: string
+      RoomNumber:
+        example: 6
+        type: integer
+      Surname:
+        example: patient surname
+        type: string
+      Weight:
+        example: 42
+        type: number
+      id:
+        example: 1
+        format: int64
+        type: integer
+    type: object
+  model.UpdateDoctor:
+    properties:
+      Role:
+        example: doctor role
+        type: string
+      Speciality:
+        example: doctor speciality
+        type: string
+      TokenId:
+        example: TokenId
+        type: string
+      surname:
+        example: doctor surname
+        type: string
+    type: object
+  model.UpdatePatient:
+    properties:
+      DegreeOfDanger:
+        example: 1
+        type: integer
+      Height:
+        example: 180
+        type: integer
+      Name:
+        example: patient Name
+        type: string
+      Patronymic:
+        example: patient patronymic
+        type: string
+      RoomNumber:
+        example: 6
+        type: integer
+      Surname:
+        example: patient surname
+        type: string
+      Weight:
+        example: 42
+        type: number
+    type: object
 info:
   contact: {}
 paths:
+  /doctors:
+    get:
+      consumes:
+      - application/json
+      description: get Doctors
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Doctor'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: List Doctors
+      tags:
+      - Doctors
+    post:
+      consumes:
+      - application/json
+      description: add Doctor by json
+      parameters:
+      - description: Add doctor
+        in: body
+        name: Doctor
+        required: true
+        schema:
+          $ref: '#/definitions/model.AddDoctor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Doctor'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Add a Doctor
+      tags:
+      - Doctors
   /doctors/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete by doctor ID
+      parameters:
+      - description: Doctor ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/model.Doctor'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Delete a doctor
+      tags:
+      - Doctors
     get:
       consumes:
       - application/json
@@ -56,7 +295,211 @@ paths:
             $ref: '#/definitions/httputil.HTTPError'
       summary: Show a Doctor
       tags:
-      - doctors
+      - Doctors
+    patch:
+      consumes:
+      - application/json
+      description: Update by json doctor
+      parameters:
+      - description: Doctor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update doctor
+        in: body
+        name: doctor
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateDoctor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Doctor'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Update a doctor
+      tags:
+      - Doctors
+  /patients:
+    get:
+      consumes:
+      - application/json
+      description: get Patients
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Patient'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: List Patients
+      tags:
+      - Patients
+    post:
+      consumes:
+      - application/json
+      description: add Patient by json
+      parameters:
+      - description: Add patient
+        in: body
+        name: Patient
+        required: true
+        schema:
+          $ref: '#/definitions/model.AddPatient'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Patient'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Add a Patient
+      tags:
+      - Patients
+  /patients/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete by patient ID
+      parameters:
+      - description: Patient ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/model.Patient'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Delete a patient
+      tags:
+      - Patients
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      parameters:
+      - description: Patient ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Patient'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Show a Patient
+      tags:
+      - Patients
+    patch:
+      consumes:
+      - application/json
+      description: Update by json patient
+      parameters:
+      - description: Patient ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update patient
+        in: body
+        name: patient
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdatePatient'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Patient'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Update a patient
+      tags:
+      - Patients
 securityDefinitions:
   BasicAuth:
     type: basic
