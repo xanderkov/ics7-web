@@ -8,9 +8,9 @@ import (
 )
 
 // ShowDoctor godoc
-// @Summary      Show an Doctor
+// @Summary      Show a Doctor
 // @Description  get string by ID
-// @Tags         accounts
+// @Tags         doctors
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "Doctor ID"
@@ -18,8 +18,8 @@ import (
 // @Failure      400  {object}  httputil.HTTPError
 // @Failure      404  {object}  httputil.HTTPError
 // @Failure      500  {object}  httputil.HTTPError
-// @Router       /accounts/{id} [get]
-func (c *Controller) ShowAccount(ctx *gin.Context) {
+// @Router       /doctors/{id} [get]
+func (c *Controller) ShowDoctor(ctx *gin.Context) {
 	id := ctx.Param("id")
 	aid, err := strconv.Atoi(id)
 

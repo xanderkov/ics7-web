@@ -11,25 +11,7 @@ import (
 	"hospital/internal/modules/view/rest-api/controller"
 )
 
-// @title           Psycho Admin API
-// @version         1.0
-// @description     This is psycho admin api.
-// @termsOfService  http://swagger.io/terms/
-
-// @contact.name   API Support
-// @contact.url    http://www.swagger.io/support
-// @contact.email  support@swagger.io
-
-// @license.name  Apache 2.0
-// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
-
-// @host      localhost:8090
-// @BasePath  /api/v1
-
 // @securityDefinitions.basic  BasicAuth
-
-// @externalDocs.description  OpenAPI
-// @externalDocs.url          https://swagger.io/resources/open-api/
 
 func api(controller *controller.Controller, cfg config.Config, logger *zap.Logger) {
 	address := fmt.Sprintf("localhost:%d", cfg.ApiPort)
@@ -41,16 +23,18 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 	{
 		doctors := v1.Group("/doctors")
 		{
-			doctors.GET(":id", c.ShowAccount)
+			doctors.GET(":id", c.ShowDoctor)
+			doctors.POST("", c.SingUp)
 		}
 		//...
 	}
 
-	docs.SwaggerInfo.Title = "Swagger Example API"
-	docs.SwaggerInfo.Description = "This is a sample server Petstore server."
+	docs.SwaggerInfo.Title = "Psycho Admin API"
+	docs.SwaggerInfo.Description = "This is psycho admin api."
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "petstore.swagger.io"
-	docs.SwaggerInfo.BasePath = "/v2"
+	docs.SwaggerInfo.Host = "localhost:8090"
+	docs.SwaggerInfo.BasePath = "/api/v1"
+
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	r.Run(address)
 }

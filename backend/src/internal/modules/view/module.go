@@ -1,4 +1,4 @@
-package telegram
+package view
 
 import (
 	"go.uber.org/fx"
