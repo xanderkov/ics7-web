@@ -139,13 +139,11 @@ func (c *Controller) DeletePatient(ctx *gin.Context) {
 // @Failure      500  {object}  httputil.HTTPError
 // @Router       /patients [post]
 func (c *Controller) AddPatient(ctx *gin.Context) {
-
 	var addPatient model.AddPatient
 	if err := ctx.ShouldBindJSON(&addPatient); err != nil {
 		httputil.NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
-
 	newPatient := &patient_dto.CreatePatient{
 		Surname:        addPatient.Surname,
 		Name:           addPatient.Name,
@@ -155,7 +153,6 @@ func (c *Controller) AddPatient(ctx *gin.Context) {
 		RoomNumber:     addPatient.RoomNumber,
 		DegreeOfDanger: addPatient.DegreeOfDanger,
 	}
-
 	patient, err := c.patientService.Create(ctx, newPatient)
 	if err != nil {
 		httputil.NewError(ctx, http.StatusBadRequest, err)

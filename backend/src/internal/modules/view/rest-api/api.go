@@ -29,13 +29,31 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 			doctors.PATCH(":id", c.UpdateDoctor)
 			doctors.DELETE(":id", c.DeleteDoctor)
 		}
-		patients := v1.GET("/patients")
+		patients := v1.Group("/patients")
 		{
 			patients.GET(":id", c.ShowPatient)
 			patients.GET("", c.ListPatients)
 			patients.POST("", c.AddPatient)
 			patients.PATCH(":id", c.UpdatePatient)
 			patients.DELETE(":id", c.DeletePatient)
+		}
+
+		room := v1.Group("/rooms")
+		{
+			room.GET(":id", c.ShowRoom)
+			room.GET("", c.ListRooms)
+			room.POST("", c.AddRoom)
+			room.PATCH(":id", c.UpdateRoom)
+			room.DELETE(":id", c.DeleteRoom)
+		}
+
+		disease := v1.Group("/disease")
+		{
+			disease.GET(":id", c.ShowDisease)
+			disease.GET("", c.ListDiseases)
+			disease.POST("", c.AddDisease)
+			disease.PATCH(":id", c.UpdateDisease)
+			disease.DELETE(":id", c.DeleteDisease)
 		}
 
 	}

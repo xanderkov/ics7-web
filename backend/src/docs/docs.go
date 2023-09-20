@@ -15,6 +15,256 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/diseases": {
+            "get": {
+                "description": "get Diseases",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Diseases"
+                ],
+                "summary": "List Diseases",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.Disease"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "add Disease by json",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Diseases"
+                ],
+                "summary": "Add a Disease",
+                "parameters": [
+                    {
+                        "description": "Add disease",
+                        "name": "Disease",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.AddDisease"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Disease"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/diseases/{id}": {
+            "get": {
+                "description": "get string by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Diseases"
+                ],
+                "summary": "Show a Disease",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Disease ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Disease"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete by disease ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Diseases"
+                ],
+                "summary": "Delete a disease",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Disease ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/model.Disease"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update by json disease",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Diseases"
+                ],
+                "summary": "Update a disease",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Disease ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update disease",
+                        "name": "disease",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.UpdateDisease"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Disease"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
         "/doctors": {
             "get": {
                 "description": "get Doctors",
@@ -514,9 +764,276 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/rooms": {
+            "get": {
+                "description": "get Rooms",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "List Rooms",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.Room"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "add Room by json",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "Add a Room",
+                "parameters": [
+                    {
+                        "description": "Add room",
+                        "name": "Room",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.AddRoom"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Room"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/rooms/{id}": {
+            "get": {
+                "description": "get string by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "Show a Room",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Room ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Room"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete by room ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "Delete a room",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Room ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/model.Room"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update by json room",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Rooms"
+                ],
+                "summary": "Update a room",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Room ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update room",
+                        "name": "room",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.UpdateRoom"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Room"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "dto.Disease": {
+            "type": "object",
+            "properties": {
+                "degreeOfDanger": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "threat": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.Doctor": {
             "type": "object",
             "properties": {
@@ -566,6 +1083,29 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.Room": {
+            "type": "object",
+            "properties": {
+                "floor": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "num": {
+                    "type": "integer"
+                },
+                "numberBeds": {
+                    "type": "integer"
+                },
+                "numberPatients": {
+                    "type": "integer"
+                },
+                "typeRoom": {
+                    "type": "string"
+                }
+            }
+        },
         "httputil.HTTPError": {
             "type": "object",
             "properties": {
@@ -576,6 +1116,23 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "status bad request"
+                }
+            }
+        },
+        "model.AddDisease": {
+            "type": "object",
+            "properties": {
+                "DegreeOfDanger": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "Name": {
+                    "type": "string",
+                    "example": "Abrobius"
+                },
+                "Threat": {
+                    "type": "string",
+                    "example": "Заболел"
                 }
             }
         },
@@ -630,6 +1187,58 @@ const docTemplate = `{
                 "Weight": {
                     "type": "number",
                     "example": 42
+                }
+            }
+        },
+        "model.AddRoom": {
+            "type": "object",
+            "properties": {
+                "Floor": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "Num": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "NumberBeds": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "NumberPatients": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "TypeRoom": {
+                    "type": "string",
+                    "example": "1"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                }
+            }
+        },
+        "model.Disease": {
+            "type": "object",
+            "properties": {
+                "DegreeOfDanger": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "Name": {
+                    "type": "string",
+                    "example": "Abrobius"
+                },
+                "Threat": {
+                    "type": "string",
+                    "example": "Заболел"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
                 }
             }
         },
@@ -697,6 +1306,53 @@ const docTemplate = `{
                 }
             }
         },
+        "model.Room": {
+            "type": "object",
+            "properties": {
+                "Floor": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "Num": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "NumberBeds": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "NumberPatients": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "TypeRoom": {
+                    "type": "string",
+                    "example": "1"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                }
+            }
+        },
+        "model.UpdateDisease": {
+            "type": "object",
+            "properties": {
+                "DegreeOfDanger": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "Name": {
+                    "type": "string",
+                    "example": "Abrobius"
+                },
+                "Threat": {
+                    "type": "string",
+                    "example": "Заболел"
+                }
+            }
+        },
         "model.UpdateDoctor": {
             "type": "object",
             "properties": {
@@ -748,6 +1404,36 @@ const docTemplate = `{
                 "Weight": {
                     "type": "number",
                     "example": 42
+                }
+            }
+        },
+        "model.UpdateRoom": {
+            "type": "object",
+            "properties": {
+                "Floor": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "Num": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "NumberBeds": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "NumberPatients": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "TypeRoom": {
+                    "type": "string",
+                    "example": "1"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
                 }
             }
         }

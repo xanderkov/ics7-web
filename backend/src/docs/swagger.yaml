@@ -1,4 +1,15 @@
 definitions:
+  dto.Disease:
+    properties:
+      degreeOfDanger:
+        type: integer
+      id:
+        type: integer
+      name:
+        type: string
+      threat:
+        type: string
+    type: object
   dto.Doctor:
     properties:
       id:
@@ -31,6 +42,21 @@ definitions:
       weight:
         type: number
     type: object
+  dto.Room:
+    properties:
+      floor:
+        type: integer
+      id:
+        type: integer
+      num:
+        type: integer
+      numberBeds:
+        type: integer
+      numberPatients:
+        type: integer
+      typeRoom:
+        type: string
+    type: object
   httputil.HTTPError:
     properties:
       code:
@@ -38,6 +64,18 @@ definitions:
         type: integer
       message:
         example: status bad request
+        type: string
+    type: object
+  model.AddDisease:
+    properties:
+      DegreeOfDanger:
+        example: 1
+        type: integer
+      Name:
+        example: Abrobius
+        type: string
+      Threat:
+        example: Заболел
         type: string
     type: object
   model.AddDoctor:
@@ -78,6 +116,44 @@ definitions:
       Weight:
         example: 42
         type: number
+    type: object
+  model.AddRoom:
+    properties:
+      Floor:
+        example: 1
+        type: integer
+      Num:
+        example: 1
+        type: integer
+      NumberBeds:
+        example: 1
+        type: integer
+      NumberPatients:
+        example: 1
+        type: integer
+      TypeRoom:
+        example: "1"
+        type: string
+      id:
+        example: 1
+        format: int64
+        type: integer
+    type: object
+  model.Disease:
+    properties:
+      DegreeOfDanger:
+        example: 1
+        type: integer
+      Name:
+        example: Abrobius
+        type: string
+      Threat:
+        example: Заболел
+        type: string
+      id:
+        example: 1
+        format: int64
+        type: integer
     type: object
   model.Doctor:
     properties:
@@ -126,6 +202,40 @@ definitions:
         format: int64
         type: integer
     type: object
+  model.Room:
+    properties:
+      Floor:
+        example: 1
+        type: integer
+      Num:
+        example: 1
+        type: integer
+      NumberBeds:
+        example: 1
+        type: integer
+      NumberPatients:
+        example: 1
+        type: integer
+      TypeRoom:
+        example: "1"
+        type: string
+      id:
+        example: 1
+        format: int64
+        type: integer
+    type: object
+  model.UpdateDisease:
+    properties:
+      DegreeOfDanger:
+        example: 1
+        type: integer
+      Name:
+        example: Abrobius
+        type: string
+      Threat:
+        example: Заболел
+        type: string
+    type: object
   model.UpdateDoctor:
     properties:
       Role:
@@ -165,9 +275,197 @@ definitions:
         example: 42
         type: number
     type: object
+  model.UpdateRoom:
+    properties:
+      Floor:
+        example: 1
+        type: integer
+      Num:
+        example: 1
+        type: integer
+      NumberBeds:
+        example: 1
+        type: integer
+      NumberPatients:
+        example: 1
+        type: integer
+      TypeRoom:
+        example: "1"
+        type: string
+      id:
+        example: 1
+        format: int64
+        type: integer
+    type: object
 info:
   contact: {}
 paths:
+  /diseases:
+    get:
+      consumes:
+      - application/json
+      description: get Diseases
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Disease'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: List Diseases
+      tags:
+      - Diseases
+    post:
+      consumes:
+      - application/json
+      description: add Disease by json
+      parameters:
+      - description: Add disease
+        in: body
+        name: Disease
+        required: true
+        schema:
+          $ref: '#/definitions/model.AddDisease'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Disease'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Add a Disease
+      tags:
+      - Diseases
+  /diseases/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete by disease ID
+      parameters:
+      - description: Disease ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/model.Disease'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Delete a disease
+      tags:
+      - Diseases
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      parameters:
+      - description: Disease ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Disease'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Show a Disease
+      tags:
+      - Diseases
+    patch:
+      consumes:
+      - application/json
+      description: Update by json disease
+      parameters:
+      - description: Disease ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update disease
+        in: body
+        name: disease
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateDisease'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Disease'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Update a disease
+      tags:
+      - Diseases
   /doctors:
     get:
       consumes:
@@ -500,6 +798,172 @@ paths:
       summary: Update a patient
       tags:
       - Patients
+  /rooms:
+    get:
+      consumes:
+      - application/json
+      description: get Rooms
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Room'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: List Rooms
+      tags:
+      - Rooms
+    post:
+      consumes:
+      - application/json
+      description: add Room by json
+      parameters:
+      - description: Add room
+        in: body
+        name: Room
+        required: true
+        schema:
+          $ref: '#/definitions/model.AddRoom'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Room'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Add a Room
+      tags:
+      - Rooms
+  /rooms/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete by room ID
+      parameters:
+      - description: Room ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/model.Room'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Delete a room
+      tags:
+      - Rooms
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      parameters:
+      - description: Room ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Room'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Show a Room
+      tags:
+      - Rooms
+    patch:
+      consumes:
+      - application/json
+      description: Update by json room
+      parameters:
+      - description: Room ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update room
+        in: body
+        name: room
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateRoom'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Room'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Update a room
+      tags:
+      - Rooms
 securityDefinitions:
   BasicAuth:
     type: basic
