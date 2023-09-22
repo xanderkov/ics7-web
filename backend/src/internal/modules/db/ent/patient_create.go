@@ -10,6 +10,7 @@ import (
 	"hospital/internal/modules/db/ent/doctor"
 	"hospital/internal/modules/db/ent/patient"
 	"hospital/internal/modules/db/ent/room"
+	"hospital/internal/modules/db/ent/treatment"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -107,6 +108,25 @@ func (pc *PatientCreate) SetNillableIllsID(id *int) *PatientCreate {
 // SetIlls sets the "ills" edge to the Disease entity.
 func (pc *PatientCreate) SetIlls(d *Disease) *PatientCreate {
 	return pc.SetIllsID(d.ID)
+}
+
+// SetTreatsID sets the "treats" edge to the Treatment entity by ID.
+func (pc *PatientCreate) SetTreatsID(id int) *PatientCreate {
+	pc.mutation.SetTreatsID(id)
+	return pc
+}
+
+// SetNillableTreatsID sets the "treats" edge to the Treatment entity by ID if the given value is not nil.
+func (pc *PatientCreate) SetNillableTreatsID(id *int) *PatientCreate {
+	if id != nil {
+		pc = pc.SetTreatsID(*id)
+	}
+	return pc
+}
+
+// SetTreats sets the "treats" edge to the Treatment entity.
+func (pc *PatientCreate) SetTreats(t *Treatment) *PatientCreate {
+	return pc.SetTreatsID(t.ID)
 }
 
 // Mutation returns the PatientMutation object of the builder.
@@ -265,6 +285,23 @@ func (pc *PatientCreate) createSpec() (*Patient, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.disease_has = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.TreatsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   patient.TreatsTable,
+			Columns: []string{patient.TreatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(treatment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.treatment_cured = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -8,6 +8,18 @@ import (
 )
 
 var (
+	// AccountsColumns holds the columns for the "accounts" table.
+	AccountsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "login", Type: field.TypeString, Unique: true},
+		{Name: "password_hash", Type: field.TypeString},
+	}
+	// AccountsTable holds the schema information for the "accounts" table.
+	AccountsTable = &schema.Table{
+		Name:       "accounts",
+		Columns:    AccountsColumns,
+		PrimaryKey: []*schema.Column{AccountsColumns[0]},
+	}
 	// DiseasesColumns holds the columns for the "diseases" table.
 	DiseasesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -46,6 +58,7 @@ var (
 		{Name: "degree_of_danger", Type: field.TypeInt},
 		{Name: "disease_has", Type: field.TypeInt, Nullable: true},
 		{Name: "room_number", Type: field.TypeInt},
+		{Name: "treatment_cured", Type: field.TypeInt, Nullable: true},
 	}
 	// PatientsTable holds the schema information for the "patients" table.
 	PatientsTable = &schema.Table{
@@ -65,6 +78,12 @@ var (
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
+			{
+				Symbol:     "patients_treatments_cured",
+				Columns:    []*schema.Column{PatientsColumns[9]},
+				RefColumns: []*schema.Column{TreatmentsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
 		},
 	}
 	// RoomsColumns holds the columns for the "rooms" table.
@@ -81,6 +100,44 @@ var (
 		Name:       "rooms",
 		Columns:    RoomsColumns,
 		PrimaryKey: []*schema.Column{RoomsColumns[0]},
+	}
+	// TreatmentsColumns holds the columns for the "treatments" table.
+	TreatmentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "tablets", Type: field.TypeString},
+		{Name: "psychological_treatment", Type: field.TypeString},
+		{Name: "survey", Type: field.TypeString},
+	}
+	// TreatmentsTable holds the schema information for the "treatments" table.
+	TreatmentsTable = &schema.Table{
+		Name:       "treatments",
+		Columns:    TreatmentsColumns,
+		PrimaryKey: []*schema.Column{TreatmentsColumns[0]},
+	}
+	// AccountIsColumns holds the columns for the "account_is" table.
+	AccountIsColumns = []*schema.Column{
+		{Name: "account_id", Type: field.TypeInt},
+		{Name: "doctor_id", Type: field.TypeInt},
+	}
+	// AccountIsTable holds the schema information for the "account_is" table.
+	AccountIsTable = &schema.Table{
+		Name:       "account_is",
+		Columns:    AccountIsColumns,
+		PrimaryKey: []*schema.Column{AccountIsColumns[0], AccountIsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "account_is_account_id",
+				Columns:    []*schema.Column{AccountIsColumns[0]},
+				RefColumns: []*schema.Column{AccountsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "account_is_doctor_id",
+				Columns:    []*schema.Column{AccountIsColumns[1]},
+				RefColumns: []*schema.Column{DoctorsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 	}
 	// DoctorPatientColumns holds the columns for the "doctor_patient" table.
 	DoctorPatientColumns = []*schema.Column{
@@ -109,10 +166,13 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AccountsTable,
 		DiseasesTable,
 		DoctorsTable,
 		PatientsTable,
 		RoomsTable,
+		TreatmentsTable,
+		AccountIsTable,
 		DoctorPatientTable,
 	}
 )
@@ -120,6 +180,9 @@ var (
 func init() {
 	PatientsTable.ForeignKeys[0].RefTable = DiseasesTable
 	PatientsTable.ForeignKeys[1].RefTable = RoomsTable
+	PatientsTable.ForeignKeys[2].RefTable = TreatmentsTable
+	AccountIsTable.ForeignKeys[0].RefTable = AccountsTable
+	AccountIsTable.ForeignKeys[1].RefTable = DoctorsTable
 	DoctorPatientTable.ForeignKeys[0].RefTable = DoctorsTable
 	DoctorPatientTable.ForeignKeys[1].RefTable = PatientsTable
 }

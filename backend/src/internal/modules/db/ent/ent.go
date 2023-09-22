@@ -6,10 +6,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hospital/internal/modules/db/ent/account"
 	"hospital/internal/modules/db/ent/disease"
 	"hospital/internal/modules/db/ent/doctor"
 	"hospital/internal/modules/db/ent/patient"
 	"hospital/internal/modules/db/ent/room"
+	"hospital/internal/modules/db/ent/treatment"
 	"reflect"
 	"sync"
 
@@ -76,10 +78,12 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			disease.Table: disease.ValidColumn,
-			doctor.Table:  doctor.ValidColumn,
-			patient.Table: patient.ValidColumn,
-			room.Table:    room.ValidColumn,
+			account.Table:   account.ValidColumn,
+			disease.Table:   disease.ValidColumn,
+			doctor.Table:    doctor.ValidColumn,
+			patient.Table:   patient.ValidColumn,
+			room.Table:      room.ValidColumn,
+			treatment.Table: treatment.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

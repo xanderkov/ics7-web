@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Account is the predicate function for account builders.
+type Account func(*sql.Selector)
+
 // Disease is the predicate function for disease builders.
 type Disease func(*sql.Selector)
 
@@ -17,3 +20,6 @@ type Patient func(*sql.Selector)
 
 // Room is the predicate function for room builders.
 type Room func(*sql.Selector)
+
+// Treatment is the predicate function for treatment builders.
+type Treatment func(*sql.Selector)

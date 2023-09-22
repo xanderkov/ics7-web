@@ -26,5 +26,7 @@ func (Doctor) Edges() []ent.Edge {
 		edge.To("treats", Patient.Type).StorageKey(
 			edge.Table("doctor_patient"), edge.Columns("doctor_id", "patient_id"),
 		),
+		edge.From("account", Account.Type).
+			Ref("is"),
 	}
 }

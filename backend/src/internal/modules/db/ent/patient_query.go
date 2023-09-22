@@ -11,6 +11,7 @@ import (
 	"hospital/internal/modules/db/ent/patient"
 	"hospital/internal/modules/db/ent/predicate"
 	"hospital/internal/modules/db/ent/room"
+	"hospital/internal/modules/db/ent/treatment"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
@@ -28,6 +29,7 @@ type PatientQuery struct {
 	withRepo   *RoomQuery
 	withDoctor *DoctorQuery
 	withIlls   *DiseaseQuery
+	withTreats *TreatmentQuery
 	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -124,6 +126,28 @@ func (pq *PatientQuery) QueryIlls() *DiseaseQuery {
 			sqlgraph.From(patient.Table, patient.FieldID, selector),
 			sqlgraph.To(disease.Table, disease.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, patient.IllsTable, patient.IllsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTreats chains the current query on the "treats" edge.
+func (pq *PatientQuery) QueryTreats() *TreatmentQuery {
+	query := (&TreatmentClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(patient.Table, patient.FieldID, selector),
+			sqlgraph.To(treatment.Table, treatment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, patient.TreatsTable, patient.TreatsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -326,6 +350,7 @@ func (pq *PatientQuery) Clone() *PatientQuery {
 		withRepo:   pq.withRepo.Clone(),
 		withDoctor: pq.withDoctor.Clone(),
 		withIlls:   pq.withIlls.Clone(),
+		withTreats: pq.withTreats.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
@@ -362,6 +387,17 @@ func (pq *PatientQuery) WithIlls(opts ...func(*DiseaseQuery)) *PatientQuery {
 		opt(query)
 	}
 	pq.withIlls = query
+	return pq
+}
+
+// WithTreats tells the query-builder to eager-load the nodes that are connected to
+// the "treats" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *PatientQuery) WithTreats(opts ...func(*TreatmentQuery)) *PatientQuery {
+	query := (&TreatmentClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withTreats = query
 	return pq
 }
 
@@ -444,13 +480,14 @@ func (pq *PatientQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pati
 		nodes       = []*Patient{}
 		withFKs     = pq.withFKs
 		_spec       = pq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			pq.withRepo != nil,
 			pq.withDoctor != nil,
 			pq.withIlls != nil,
+			pq.withTreats != nil,
 		}
 	)
-	if pq.withIlls != nil {
+	if pq.withIlls != nil || pq.withTreats != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -490,6 +527,12 @@ func (pq *PatientQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pati
 	if query := pq.withIlls; query != nil {
 		if err := pq.loadIlls(ctx, query, nodes, nil,
 			func(n *Patient, e *Disease) { n.Edges.Ills = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pq.withTreats; query != nil {
+		if err := pq.loadTreats(ctx, query, nodes, nil,
+			func(n *Patient, e *Treatment) { n.Edges.Treats = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -611,6 +654,38 @@ func (pq *PatientQuery) loadIlls(ctx context.Context, query *DiseaseQuery, nodes
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "disease_has" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (pq *PatientQuery) loadTreats(ctx context.Context, query *TreatmentQuery, nodes []*Patient, init func(*Patient), assign func(*Patient, *Treatment)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Patient)
+	for i := range nodes {
+		if nodes[i].treatment_cured == nil {
+			continue
+		}
+		fk := *nodes[i].treatment_cured
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(treatment.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "treatment_cured" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

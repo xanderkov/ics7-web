@@ -10,10 +10,12 @@ import (
 
 	"hospital/internal/modules/db/ent/migrate"
 
+	"hospital/internal/modules/db/ent/account"
 	"hospital/internal/modules/db/ent/disease"
 	"hospital/internal/modules/db/ent/doctor"
 	"hospital/internal/modules/db/ent/patient"
 	"hospital/internal/modules/db/ent/room"
+	"hospital/internal/modules/db/ent/treatment"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -26,6 +28,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Account is the client for interacting with the Account builders.
+	Account *AccountClient
 	// Disease is the client for interacting with the Disease builders.
 	Disease *DiseaseClient
 	// Doctor is the client for interacting with the Doctor builders.
@@ -34,6 +38,8 @@ type Client struct {
 	Patient *PatientClient
 	// Room is the client for interacting with the Room builders.
 	Room *RoomClient
+	// Treatment is the client for interacting with the Treatment builders.
+	Treatment *TreatmentClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -47,10 +53,12 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Account = NewAccountClient(c.config)
 	c.Disease = NewDiseaseClient(c.config)
 	c.Doctor = NewDoctorClient(c.config)
 	c.Patient = NewPatientClient(c.config)
 	c.Room = NewRoomClient(c.config)
+	c.Treatment = NewTreatmentClient(c.config)
 }
 
 type (
@@ -131,12 +139,14 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:     ctx,
-		config:  cfg,
-		Disease: NewDiseaseClient(cfg),
-		Doctor:  NewDoctorClient(cfg),
-		Patient: NewPatientClient(cfg),
-		Room:    NewRoomClient(cfg),
+		ctx:       ctx,
+		config:    cfg,
+		Account:   NewAccountClient(cfg),
+		Disease:   NewDiseaseClient(cfg),
+		Doctor:    NewDoctorClient(cfg),
+		Patient:   NewPatientClient(cfg),
+		Room:      NewRoomClient(cfg),
+		Treatment: NewTreatmentClient(cfg),
 	}, nil
 }
 
@@ -154,19 +164,21 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:     ctx,
-		config:  cfg,
-		Disease: NewDiseaseClient(cfg),
-		Doctor:  NewDoctorClient(cfg),
-		Patient: NewPatientClient(cfg),
-		Room:    NewRoomClient(cfg),
+		ctx:       ctx,
+		config:    cfg,
+		Account:   NewAccountClient(cfg),
+		Disease:   NewDiseaseClient(cfg),
+		Doctor:    NewDoctorClient(cfg),
+		Patient:   NewPatientClient(cfg),
+		Room:      NewRoomClient(cfg),
+		Treatment: NewTreatmentClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Disease.
+//		Account.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -188,24 +200,28 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Disease.Use(hooks...)
-	c.Doctor.Use(hooks...)
-	c.Patient.Use(hooks...)
-	c.Room.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.Account, c.Disease, c.Doctor, c.Patient, c.Room, c.Treatment,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Disease.Intercept(interceptors...)
-	c.Doctor.Intercept(interceptors...)
-	c.Patient.Intercept(interceptors...)
-	c.Room.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.Account, c.Disease, c.Doctor, c.Patient, c.Room, c.Treatment,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *AccountMutation:
+		return c.Account.mutate(ctx, m)
 	case *DiseaseMutation:
 		return c.Disease.mutate(ctx, m)
 	case *DoctorMutation:
@@ -214,8 +230,144 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Patient.mutate(ctx, m)
 	case *RoomMutation:
 		return c.Room.mutate(ctx, m)
+	case *TreatmentMutation:
+		return c.Treatment.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// AccountClient is a client for the Account schema.
+type AccountClient struct {
+	config
+}
+
+// NewAccountClient returns a client for the Account from the given config.
+func NewAccountClient(c config) *AccountClient {
+	return &AccountClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `account.Hooks(f(g(h())))`.
+func (c *AccountClient) Use(hooks ...Hook) {
+	c.hooks.Account = append(c.hooks.Account, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `account.Intercept(f(g(h())))`.
+func (c *AccountClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Account = append(c.inters.Account, interceptors...)
+}
+
+// Create returns a builder for creating a Account entity.
+func (c *AccountClient) Create() *AccountCreate {
+	mutation := newAccountMutation(c.config, OpCreate)
+	return &AccountCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Account entities.
+func (c *AccountClient) CreateBulk(builders ...*AccountCreate) *AccountCreateBulk {
+	return &AccountCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Account.
+func (c *AccountClient) Update() *AccountUpdate {
+	mutation := newAccountMutation(c.config, OpUpdate)
+	return &AccountUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AccountClient) UpdateOne(a *Account) *AccountUpdateOne {
+	mutation := newAccountMutation(c.config, OpUpdateOne, withAccount(a))
+	return &AccountUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AccountClient) UpdateOneID(id int) *AccountUpdateOne {
+	mutation := newAccountMutation(c.config, OpUpdateOne, withAccountID(id))
+	return &AccountUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Account.
+func (c *AccountClient) Delete() *AccountDelete {
+	mutation := newAccountMutation(c.config, OpDelete)
+	return &AccountDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AccountClient) DeleteOne(a *Account) *AccountDeleteOne {
+	return c.DeleteOneID(a.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AccountClient) DeleteOneID(id int) *AccountDeleteOne {
+	builder := c.Delete().Where(account.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AccountDeleteOne{builder}
+}
+
+// Query returns a query builder for Account.
+func (c *AccountClient) Query() *AccountQuery {
+	return &AccountQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAccount},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Account entity by its id.
+func (c *AccountClient) Get(ctx context.Context, id int) (*Account, error) {
+	return c.Query().Where(account.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AccountClient) GetX(ctx context.Context, id int) *Account {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryIs queries the is edge of a Account.
+func (c *AccountClient) QueryIs(a *Account) *DoctorQuery {
+	query := (&DoctorClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, id),
+			sqlgraph.To(doctor.Table, doctor.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, account.IsTable, account.IsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AccountClient) Hooks() []Hook {
+	return c.hooks.Account
+}
+
+// Interceptors returns the client interceptors.
+func (c *AccountClient) Interceptors() []Interceptor {
+	return c.inters.Account
+}
+
+func (c *AccountClient) mutate(ctx context.Context, m *AccountMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AccountCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AccountUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AccountUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AccountDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Account mutation op: %q", m.Op())
 	}
 }
 
@@ -462,6 +614,22 @@ func (c *DoctorClient) QueryTreats(d *Doctor) *PatientQuery {
 	return query
 }
 
+// QueryAccount queries the account edge of a Doctor.
+func (c *DoctorClient) QueryAccount(d *Doctor) *AccountQuery {
+	query := (&AccountClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := d.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(doctor.Table, doctor.FieldID, id),
+			sqlgraph.To(account.Table, account.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, doctor.AccountTable, doctor.AccountPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *DoctorClient) Hooks() []Hook {
 	return c.hooks.Doctor
@@ -628,6 +796,22 @@ func (c *PatientClient) QueryIlls(pa *Patient) *DiseaseQuery {
 	return query
 }
 
+// QueryTreats queries the treats edge of a Patient.
+func (c *PatientClient) QueryTreats(pa *Patient) *TreatmentQuery {
+	query := (&TreatmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pa.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(patient.Table, patient.FieldID, id),
+			sqlgraph.To(treatment.Table, treatment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, patient.TreatsTable, patient.TreatsColumn),
+		)
+		fromV = sqlgraph.Neighbors(pa.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *PatientClient) Hooks() []Hook {
 	return c.hooks.Patient
@@ -787,12 +971,146 @@ func (c *RoomClient) mutate(ctx context.Context, m *RoomMutation) (Value, error)
 	}
 }
 
+// TreatmentClient is a client for the Treatment schema.
+type TreatmentClient struct {
+	config
+}
+
+// NewTreatmentClient returns a client for the Treatment from the given config.
+func NewTreatmentClient(c config) *TreatmentClient {
+	return &TreatmentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `treatment.Hooks(f(g(h())))`.
+func (c *TreatmentClient) Use(hooks ...Hook) {
+	c.hooks.Treatment = append(c.hooks.Treatment, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `treatment.Intercept(f(g(h())))`.
+func (c *TreatmentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Treatment = append(c.inters.Treatment, interceptors...)
+}
+
+// Create returns a builder for creating a Treatment entity.
+func (c *TreatmentClient) Create() *TreatmentCreate {
+	mutation := newTreatmentMutation(c.config, OpCreate)
+	return &TreatmentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Treatment entities.
+func (c *TreatmentClient) CreateBulk(builders ...*TreatmentCreate) *TreatmentCreateBulk {
+	return &TreatmentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Treatment.
+func (c *TreatmentClient) Update() *TreatmentUpdate {
+	mutation := newTreatmentMutation(c.config, OpUpdate)
+	return &TreatmentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TreatmentClient) UpdateOne(t *Treatment) *TreatmentUpdateOne {
+	mutation := newTreatmentMutation(c.config, OpUpdateOne, withTreatment(t))
+	return &TreatmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TreatmentClient) UpdateOneID(id int) *TreatmentUpdateOne {
+	mutation := newTreatmentMutation(c.config, OpUpdateOne, withTreatmentID(id))
+	return &TreatmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Treatment.
+func (c *TreatmentClient) Delete() *TreatmentDelete {
+	mutation := newTreatmentMutation(c.config, OpDelete)
+	return &TreatmentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TreatmentClient) DeleteOne(t *Treatment) *TreatmentDeleteOne {
+	return c.DeleteOneID(t.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TreatmentClient) DeleteOneID(id int) *TreatmentDeleteOne {
+	builder := c.Delete().Where(treatment.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TreatmentDeleteOne{builder}
+}
+
+// Query returns a query builder for Treatment.
+func (c *TreatmentClient) Query() *TreatmentQuery {
+	return &TreatmentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTreatment},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Treatment entity by its id.
+func (c *TreatmentClient) Get(ctx context.Context, id int) (*Treatment, error) {
+	return c.Query().Where(treatment.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TreatmentClient) GetX(ctx context.Context, id int) *Treatment {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryCured queries the cured edge of a Treatment.
+func (c *TreatmentClient) QueryCured(t *Treatment) *PatientQuery {
+	query := (&PatientClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(treatment.Table, treatment.FieldID, id),
+			sqlgraph.To(patient.Table, patient.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, treatment.CuredTable, treatment.CuredColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TreatmentClient) Hooks() []Hook {
+	return c.hooks.Treatment
+}
+
+// Interceptors returns the client interceptors.
+func (c *TreatmentClient) Interceptors() []Interceptor {
+	return c.inters.Treatment
+}
+
+func (c *TreatmentClient) mutate(ctx context.Context, m *TreatmentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TreatmentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TreatmentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TreatmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TreatmentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Treatment mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Disease, Doctor, Patient, Room []ent.Hook
+		Account, Disease, Doctor, Patient, Room, Treatment []ent.Hook
 	}
 	inters struct {
-		Disease, Doctor, Patient, Room []ent.Interceptor
+		Account, Disease, Doctor, Patient, Room, Treatment []ent.Interceptor
 	}
 )

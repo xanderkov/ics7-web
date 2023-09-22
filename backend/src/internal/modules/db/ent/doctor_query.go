@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
+	"hospital/internal/modules/db/ent/account"
 	"hospital/internal/modules/db/ent/doctor"
 	"hospital/internal/modules/db/ent/patient"
 	"hospital/internal/modules/db/ent/predicate"
@@ -19,11 +20,12 @@ import (
 // DoctorQuery is the builder for querying Doctor entities.
 type DoctorQuery struct {
 	config
-	ctx        *QueryContext
-	order      []doctor.Order
-	inters     []Interceptor
-	predicates []predicate.Doctor
-	withTreats *PatientQuery
+	ctx         *QueryContext
+	order       []doctor.Order
+	inters      []Interceptor
+	predicates  []predicate.Doctor
+	withTreats  *PatientQuery
+	withAccount *AccountQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -75,6 +77,28 @@ func (dq *DoctorQuery) QueryTreats() *PatientQuery {
 			sqlgraph.From(doctor.Table, doctor.FieldID, selector),
 			sqlgraph.To(patient.Table, patient.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, doctor.TreatsTable, doctor.TreatsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAccount chains the current query on the "account" edge.
+func (dq *DoctorQuery) QueryAccount() *AccountQuery {
+	query := (&AccountClient{config: dq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := dq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := dq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(doctor.Table, doctor.FieldID, selector),
+			sqlgraph.To(account.Table, account.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, doctor.AccountTable, doctor.AccountPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
 		return fromU, nil
@@ -269,12 +293,13 @@ func (dq *DoctorQuery) Clone() *DoctorQuery {
 		return nil
 	}
 	return &DoctorQuery{
-		config:     dq.config,
-		ctx:        dq.ctx.Clone(),
-		order:      append([]doctor.Order{}, dq.order...),
-		inters:     append([]Interceptor{}, dq.inters...),
-		predicates: append([]predicate.Doctor{}, dq.predicates...),
-		withTreats: dq.withTreats.Clone(),
+		config:      dq.config,
+		ctx:         dq.ctx.Clone(),
+		order:       append([]doctor.Order{}, dq.order...),
+		inters:      append([]Interceptor{}, dq.inters...),
+		predicates:  append([]predicate.Doctor{}, dq.predicates...),
+		withTreats:  dq.withTreats.Clone(),
+		withAccount: dq.withAccount.Clone(),
 		// clone intermediate query.
 		sql:  dq.sql.Clone(),
 		path: dq.path,
@@ -289,6 +314,17 @@ func (dq *DoctorQuery) WithTreats(opts ...func(*PatientQuery)) *DoctorQuery {
 		opt(query)
 	}
 	dq.withTreats = query
+	return dq
+}
+
+// WithAccount tells the query-builder to eager-load the nodes that are connected to
+// the "account" edge. The optional arguments are used to configure the query builder of the edge.
+func (dq *DoctorQuery) WithAccount(opts ...func(*AccountQuery)) *DoctorQuery {
+	query := (&AccountClient{config: dq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	dq.withAccount = query
 	return dq
 }
 
@@ -370,8 +406,9 @@ func (dq *DoctorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Docto
 	var (
 		nodes       = []*Doctor{}
 		_spec       = dq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			dq.withTreats != nil,
+			dq.withAccount != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -396,6 +433,13 @@ func (dq *DoctorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Docto
 		if err := dq.loadTreats(ctx, query, nodes,
 			func(n *Doctor) { n.Edges.Treats = []*Patient{} },
 			func(n *Doctor, e *Patient) { n.Edges.Treats = append(n.Edges.Treats, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := dq.withAccount; query != nil {
+		if err := dq.loadAccount(ctx, query, nodes,
+			func(n *Doctor) { n.Edges.Account = []*Account{} },
+			func(n *Doctor, e *Account) { n.Edges.Account = append(n.Edges.Account, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -456,6 +500,67 @@ func (dq *DoctorQuery) loadTreats(ctx context.Context, query *PatientQuery, node
 		nodes, ok := nids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected "treats" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
+func (dq *DoctorQuery) loadAccount(ctx context.Context, query *AccountQuery, nodes []*Doctor, init func(*Doctor), assign func(*Doctor, *Account)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Doctor)
+	nids := make(map[int]map[*Doctor]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(doctor.AccountTable)
+		s.Join(joinT).On(s.C(account.FieldID), joinT.C(doctor.AccountPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(doctor.AccountPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(doctor.AccountPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Doctor]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Account](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "account" node returned %v`, n.ID)
 		}
 		for kn := range nodes {
 			assign(kn, n)

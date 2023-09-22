@@ -34,9 +34,11 @@ type Doctor struct {
 type DoctorEdges struct {
 	// Treats holds the value of the treats edge.
 	Treats []*Patient `json:"treats,omitempty"`
+	// Account holds the value of the account edge.
+	Account []*Account `json:"account,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // TreatsOrErr returns the Treats value or an error if the edge
@@ -46,6 +48,15 @@ func (e DoctorEdges) TreatsOrErr() ([]*Patient, error) {
 		return e.Treats, nil
 	}
 	return nil, &NotLoadedError{edge: "treats"}
+}
+
+// AccountOrErr returns the Account value or an error if the edge
+// was not loaded in eager-loading.
+func (e DoctorEdges) AccountOrErr() ([]*Account, error) {
+	if e.loadedTypes[1] {
+		return e.Account, nil
+	}
+	return nil, &NotLoadedError{edge: "account"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -118,6 +129,11 @@ func (d *Doctor) Value(name string) (ent.Value, error) {
 // QueryTreats queries the "treats" edge of the Doctor entity.
 func (d *Doctor) QueryTreats() *PatientQuery {
 	return NewDoctorClient(d.config).QueryTreats(d)
+}
+
+// QueryAccount queries the "account" edge of the Doctor entity.
+func (d *Doctor) QueryAccount() *AccountQuery {
+	return NewDoctorClient(d.config).QueryAccount(d)
 }
 
 // Update returns a builder for updating this Doctor.

@@ -8,6 +8,18 @@ import (
 	"hospital/internal/modules/db/ent"
 )
 
+// The AccountFunc type is an adapter to allow the use of ordinary
+// function as Account mutator.
+type AccountFunc func(context.Context, *ent.AccountMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AccountFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AccountMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AccountMutation", m)
+}
+
 // The DiseaseFunc type is an adapter to allow the use of ordinary
 // function as Disease mutator.
 type DiseaseFunc func(context.Context, *ent.DiseaseMutation) (ent.Value, error)
@@ -54,6 +66,18 @@ func (f RoomFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error)
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoomMutation", m)
+}
+
+// The TreatmentFunc type is an adapter to allow the use of ordinary
+// function as Treatment mutator.
+type TreatmentFunc func(context.Context, *ent.TreatmentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TreatmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TreatmentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TreatmentMutation", m)
 }
 
 // Condition is a hook condition function.

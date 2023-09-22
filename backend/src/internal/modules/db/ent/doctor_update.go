@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hospital/internal/modules/db/ent/account"
 	"hospital/internal/modules/db/ent/doctor"
 	"hospital/internal/modules/db/ent/patient"
 	"hospital/internal/modules/db/ent/predicate"
@@ -67,6 +68,21 @@ func (du *DoctorUpdate) AddTreats(p ...*Patient) *DoctorUpdate {
 	return du.AddTreatIDs(ids...)
 }
 
+// AddAccountIDs adds the "account" edge to the Account entity by IDs.
+func (du *DoctorUpdate) AddAccountIDs(ids ...int) *DoctorUpdate {
+	du.mutation.AddAccountIDs(ids...)
+	return du
+}
+
+// AddAccount adds the "account" edges to the Account entity.
+func (du *DoctorUpdate) AddAccount(a ...*Account) *DoctorUpdate {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return du.AddAccountIDs(ids...)
+}
+
 // Mutation returns the DoctorMutation object of the builder.
 func (du *DoctorUpdate) Mutation() *DoctorMutation {
 	return du.mutation
@@ -91,6 +107,27 @@ func (du *DoctorUpdate) RemoveTreats(p ...*Patient) *DoctorUpdate {
 		ids[i] = p[i].ID
 	}
 	return du.RemoveTreatIDs(ids...)
+}
+
+// ClearAccount clears all "account" edges to the Account entity.
+func (du *DoctorUpdate) ClearAccount() *DoctorUpdate {
+	du.mutation.ClearAccount()
+	return du
+}
+
+// RemoveAccountIDs removes the "account" edge to Account entities by IDs.
+func (du *DoctorUpdate) RemoveAccountIDs(ids ...int) *DoctorUpdate {
+	du.mutation.RemoveAccountIDs(ids...)
+	return du
+}
+
+// RemoveAccount removes "account" edges to Account entities.
+func (du *DoctorUpdate) RemoveAccount(a ...*Account) *DoctorUpdate {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return du.RemoveAccountIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -186,6 +223,51 @@ func (du *DoctorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if du.mutation.AccountCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   doctor.AccountTable,
+			Columns: doctor.AccountPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := du.mutation.RemovedAccountIDs(); len(nodes) > 0 && !du.mutation.AccountCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   doctor.AccountTable,
+			Columns: doctor.AccountPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := du.mutation.AccountIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   doctor.AccountTable,
+			Columns: doctor.AccountPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, du.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{doctor.Label}
@@ -245,6 +327,21 @@ func (duo *DoctorUpdateOne) AddTreats(p ...*Patient) *DoctorUpdateOne {
 	return duo.AddTreatIDs(ids...)
 }
 
+// AddAccountIDs adds the "account" edge to the Account entity by IDs.
+func (duo *DoctorUpdateOne) AddAccountIDs(ids ...int) *DoctorUpdateOne {
+	duo.mutation.AddAccountIDs(ids...)
+	return duo
+}
+
+// AddAccount adds the "account" edges to the Account entity.
+func (duo *DoctorUpdateOne) AddAccount(a ...*Account) *DoctorUpdateOne {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return duo.AddAccountIDs(ids...)
+}
+
 // Mutation returns the DoctorMutation object of the builder.
 func (duo *DoctorUpdateOne) Mutation() *DoctorMutation {
 	return duo.mutation
@@ -269,6 +366,27 @@ func (duo *DoctorUpdateOne) RemoveTreats(p ...*Patient) *DoctorUpdateOne {
 		ids[i] = p[i].ID
 	}
 	return duo.RemoveTreatIDs(ids...)
+}
+
+// ClearAccount clears all "account" edges to the Account entity.
+func (duo *DoctorUpdateOne) ClearAccount() *DoctorUpdateOne {
+	duo.mutation.ClearAccount()
+	return duo
+}
+
+// RemoveAccountIDs removes the "account" edge to Account entities by IDs.
+func (duo *DoctorUpdateOne) RemoveAccountIDs(ids ...int) *DoctorUpdateOne {
+	duo.mutation.RemoveAccountIDs(ids...)
+	return duo
+}
+
+// RemoveAccount removes "account" edges to Account entities.
+func (duo *DoctorUpdateOne) RemoveAccount(a ...*Account) *DoctorUpdateOne {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return duo.RemoveAccountIDs(ids...)
 }
 
 // Where appends a list predicates to the DoctorUpdate builder.
@@ -387,6 +505,51 @@ func (duo *DoctorUpdateOne) sqlSave(ctx context.Context) (_node *Doctor, err err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(patient.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if duo.mutation.AccountCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   doctor.AccountTable,
+			Columns: doctor.AccountPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := duo.mutation.RemovedAccountIDs(); len(nodes) > 0 && !duo.mutation.AccountCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   doctor.AccountTable,
+			Columns: doctor.AccountPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := duo.mutation.AccountIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   doctor.AccountTable,
+			Columns: doctor.AccountPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

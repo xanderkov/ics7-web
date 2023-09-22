@@ -6,11 +6,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hospital/internal/modules/db/ent/account"
 	"hospital/internal/modules/db/ent/disease"
 	"hospital/internal/modules/db/ent/doctor"
 	"hospital/internal/modules/db/ent/patient"
 	"hospital/internal/modules/db/ent/predicate"
 	"hospital/internal/modules/db/ent/room"
+	"hospital/internal/modules/db/ent/treatment"
 	"sync"
 
 	"entgo.io/ent"
@@ -26,11 +28,486 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeDisease = "Disease"
-	TypeDoctor  = "Doctor"
-	TypePatient = "Patient"
-	TypeRoom    = "Room"
+	TypeAccount   = "Account"
+	TypeDisease   = "Disease"
+	TypeDoctor    = "Doctor"
+	TypePatient   = "Patient"
+	TypeRoom      = "Room"
+	TypeTreatment = "Treatment"
 )
+
+// AccountMutation represents an operation that mutates the Account nodes in the graph.
+type AccountMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	login         *string
+	password_hash *string
+	clearedFields map[string]struct{}
+	is            map[int]struct{}
+	removedis     map[int]struct{}
+	clearedis     bool
+	done          bool
+	oldValue      func(context.Context) (*Account, error)
+	predicates    []predicate.Account
+}
+
+var _ ent.Mutation = (*AccountMutation)(nil)
+
+// accountOption allows management of the mutation configuration using functional options.
+type accountOption func(*AccountMutation)
+
+// newAccountMutation creates new mutation for the Account entity.
+func newAccountMutation(c config, op Op, opts ...accountOption) *AccountMutation {
+	m := &AccountMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAccount,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAccountID sets the ID field of the mutation.
+func withAccountID(id int) accountOption {
+	return func(m *AccountMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Account
+		)
+		m.oldValue = func(ctx context.Context) (*Account, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Account.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAccount sets the old Account of the mutation.
+func withAccount(node *Account) accountOption {
+	return func(m *AccountMutation) {
+		m.oldValue = func(context.Context) (*Account, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AccountMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AccountMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AccountMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AccountMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Account.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetLogin sets the "login" field.
+func (m *AccountMutation) SetLogin(s string) {
+	m.login = &s
+}
+
+// Login returns the value of the "login" field in the mutation.
+func (m *AccountMutation) Login() (r string, exists bool) {
+	v := m.login
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLogin returns the old "login" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldLogin(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLogin is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLogin requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLogin: %w", err)
+	}
+	return oldValue.Login, nil
+}
+
+// ResetLogin resets all changes to the "login" field.
+func (m *AccountMutation) ResetLogin() {
+	m.login = nil
+}
+
+// SetPasswordHash sets the "password_hash" field.
+func (m *AccountMutation) SetPasswordHash(s string) {
+	m.password_hash = &s
+}
+
+// PasswordHash returns the value of the "password_hash" field in the mutation.
+func (m *AccountMutation) PasswordHash() (r string, exists bool) {
+	v := m.password_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPasswordHash returns the old "password_hash" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldPasswordHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPasswordHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPasswordHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPasswordHash: %w", err)
+	}
+	return oldValue.PasswordHash, nil
+}
+
+// ResetPasswordHash resets all changes to the "password_hash" field.
+func (m *AccountMutation) ResetPasswordHash() {
+	m.password_hash = nil
+}
+
+// AddIIDs adds the "is" edge to the Doctor entity by ids.
+func (m *AccountMutation) AddIIDs(ids ...int) {
+	if m.is == nil {
+		m.is = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.is[ids[i]] = struct{}{}
+	}
+}
+
+// ClearIs clears the "is" edge to the Doctor entity.
+func (m *AccountMutation) ClearIs() {
+	m.clearedis = true
+}
+
+// IsCleared reports if the "is" edge to the Doctor entity was cleared.
+func (m *AccountMutation) IsCleared() bool {
+	return m.clearedis
+}
+
+// RemoveIIDs removes the "is" edge to the Doctor entity by IDs.
+func (m *AccountMutation) RemoveIIDs(ids ...int) {
+	if m.removedis == nil {
+		m.removedis = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.is, ids[i])
+		m.removedis[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedIs returns the removed IDs of the "is" edge to the Doctor entity.
+func (m *AccountMutation) RemovedIsIDs() (ids []int) {
+	for id := range m.removedis {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// IsIDs returns the "is" edge IDs in the mutation.
+func (m *AccountMutation) IsIDs() (ids []int) {
+	for id := range m.is {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetIs resets all changes to the "is" edge.
+func (m *AccountMutation) ResetIs() {
+	m.is = nil
+	m.clearedis = false
+	m.removedis = nil
+}
+
+// Where appends a list predicates to the AccountMutation builder.
+func (m *AccountMutation) Where(ps ...predicate.Account) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AccountMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AccountMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Account, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AccountMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AccountMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Account).
+func (m *AccountMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AccountMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.login != nil {
+		fields = append(fields, account.FieldLogin)
+	}
+	if m.password_hash != nil {
+		fields = append(fields, account.FieldPasswordHash)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AccountMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case account.FieldLogin:
+		return m.Login()
+	case account.FieldPasswordHash:
+		return m.PasswordHash()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AccountMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case account.FieldLogin:
+		return m.OldLogin(ctx)
+	case account.FieldPasswordHash:
+		return m.OldPasswordHash(ctx)
+	}
+	return nil, fmt.Errorf("unknown Account field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AccountMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case account.FieldLogin:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLogin(v)
+		return nil
+	case account.FieldPasswordHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPasswordHash(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Account field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AccountMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AccountMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AccountMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Account numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AccountMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AccountMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AccountMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Account nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AccountMutation) ResetField(name string) error {
+	switch name {
+	case account.FieldLogin:
+		m.ResetLogin()
+		return nil
+	case account.FieldPasswordHash:
+		m.ResetPasswordHash()
+		return nil
+	}
+	return fmt.Errorf("unknown Account field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AccountMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.is != nil {
+		edges = append(edges, account.EdgeIs)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AccountMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case account.EdgeIs:
+		ids := make([]ent.Value, 0, len(m.is))
+		for id := range m.is {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AccountMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedis != nil {
+		edges = append(edges, account.EdgeIs)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AccountMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case account.EdgeIs:
+		ids := make([]ent.Value, 0, len(m.removedis))
+		for id := range m.removedis {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AccountMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedis {
+		edges = append(edges, account.EdgeIs)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AccountMutation) EdgeCleared(name string) bool {
+	switch name {
+	case account.EdgeIs:
+		return m.clearedis
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AccountMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Account unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AccountMutation) ResetEdge(name string) error {
+	switch name {
+	case account.EdgeIs:
+		m.ResetIs()
+		return nil
+	}
+	return fmt.Errorf("unknown Account edge %s", name)
+}
 
 // DiseaseMutation represents an operation that mutates the Disease nodes in the graph.
 type DiseaseMutation struct {
@@ -598,20 +1075,23 @@ func (m *DiseaseMutation) ResetEdge(name string) error {
 // DoctorMutation represents an operation that mutates the Doctor nodes in the graph.
 type DoctorMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	tokenId       *string
-	surname       *string
-	speciality    *string
-	role          *string
-	clearedFields map[string]struct{}
-	treats        map[int]struct{}
-	removedtreats map[int]struct{}
-	clearedtreats bool
-	done          bool
-	oldValue      func(context.Context) (*Doctor, error)
-	predicates    []predicate.Doctor
+	op             Op
+	typ            string
+	id             *int
+	tokenId        *string
+	surname        *string
+	speciality     *string
+	role           *string
+	clearedFields  map[string]struct{}
+	treats         map[int]struct{}
+	removedtreats  map[int]struct{}
+	clearedtreats  bool
+	account        map[int]struct{}
+	removedaccount map[int]struct{}
+	clearedaccount bool
+	done           bool
+	oldValue       func(context.Context) (*Doctor, error)
+	predicates     []predicate.Doctor
 }
 
 var _ ent.Mutation = (*DoctorMutation)(nil)
@@ -910,6 +1390,60 @@ func (m *DoctorMutation) ResetTreats() {
 	m.removedtreats = nil
 }
 
+// AddAccountIDs adds the "account" edge to the Account entity by ids.
+func (m *DoctorMutation) AddAccountIDs(ids ...int) {
+	if m.account == nil {
+		m.account = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.account[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAccount clears the "account" edge to the Account entity.
+func (m *DoctorMutation) ClearAccount() {
+	m.clearedaccount = true
+}
+
+// AccountCleared reports if the "account" edge to the Account entity was cleared.
+func (m *DoctorMutation) AccountCleared() bool {
+	return m.clearedaccount
+}
+
+// RemoveAccountIDs removes the "account" edge to the Account entity by IDs.
+func (m *DoctorMutation) RemoveAccountIDs(ids ...int) {
+	if m.removedaccount == nil {
+		m.removedaccount = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.account, ids[i])
+		m.removedaccount[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAccount returns the removed IDs of the "account" edge to the Account entity.
+func (m *DoctorMutation) RemovedAccountIDs() (ids []int) {
+	for id := range m.removedaccount {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AccountIDs returns the "account" edge IDs in the mutation.
+func (m *DoctorMutation) AccountIDs() (ids []int) {
+	for id := range m.account {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAccount resets all changes to the "account" edge.
+func (m *DoctorMutation) ResetAccount() {
+	m.account = nil
+	m.clearedaccount = false
+	m.removedaccount = nil
+}
+
 // Where appends a list predicates to the DoctorMutation builder.
 func (m *DoctorMutation) Where(ps ...predicate.Doctor) {
 	m.predicates = append(m.predicates, ps...)
@@ -1094,9 +1628,12 @@ func (m *DoctorMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *DoctorMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.treats != nil {
 		edges = append(edges, doctor.EdgeTreats)
+	}
+	if m.account != nil {
+		edges = append(edges, doctor.EdgeAccount)
 	}
 	return edges
 }
@@ -1111,15 +1648,24 @@ func (m *DoctorMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case doctor.EdgeAccount:
+		ids := make([]ent.Value, 0, len(m.account))
+		for id := range m.account {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *DoctorMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedtreats != nil {
 		edges = append(edges, doctor.EdgeTreats)
+	}
+	if m.removedaccount != nil {
+		edges = append(edges, doctor.EdgeAccount)
 	}
 	return edges
 }
@@ -1134,15 +1680,24 @@ func (m *DoctorMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case doctor.EdgeAccount:
+		ids := make([]ent.Value, 0, len(m.removedaccount))
+		for id := range m.removedaccount {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *DoctorMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedtreats {
 		edges = append(edges, doctor.EdgeTreats)
+	}
+	if m.clearedaccount {
+		edges = append(edges, doctor.EdgeAccount)
 	}
 	return edges
 }
@@ -1153,6 +1708,8 @@ func (m *DoctorMutation) EdgeCleared(name string) bool {
 	switch name {
 	case doctor.EdgeTreats:
 		return m.clearedtreats
+	case doctor.EdgeAccount:
+		return m.clearedaccount
 	}
 	return false
 }
@@ -1171,6 +1728,9 @@ func (m *DoctorMutation) ResetEdge(name string) error {
 	switch name {
 	case doctor.EdgeTreats:
 		m.ResetTreats()
+		return nil
+	case doctor.EdgeAccount:
+		m.ResetAccount()
 		return nil
 	}
 	return fmt.Errorf("unknown Doctor edge %s", name)
@@ -1199,6 +1759,8 @@ type PatientMutation struct {
 	cleareddoctor     bool
 	ills              *int
 	clearedills       bool
+	treats            *int
+	clearedtreats     bool
 	done              bool
 	oldValue          func(context.Context) (*Patient, error)
 	predicates        []predicate.Patient
@@ -1746,6 +2308,45 @@ func (m *PatientMutation) ResetIlls() {
 	m.clearedills = false
 }
 
+// SetTreatsID sets the "treats" edge to the Treatment entity by id.
+func (m *PatientMutation) SetTreatsID(id int) {
+	m.treats = &id
+}
+
+// ClearTreats clears the "treats" edge to the Treatment entity.
+func (m *PatientMutation) ClearTreats() {
+	m.clearedtreats = true
+}
+
+// TreatsCleared reports if the "treats" edge to the Treatment entity was cleared.
+func (m *PatientMutation) TreatsCleared() bool {
+	return m.clearedtreats
+}
+
+// TreatsID returns the "treats" edge ID in the mutation.
+func (m *PatientMutation) TreatsID() (id int, exists bool) {
+	if m.treats != nil {
+		return *m.treats, true
+	}
+	return
+}
+
+// TreatsIDs returns the "treats" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TreatsID instead. It exists only for internal usage by the builders.
+func (m *PatientMutation) TreatsIDs() (ids []int) {
+	if id := m.treats; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTreats resets all changes to the "treats" edge.
+func (m *PatientMutation) ResetTreats() {
+	m.treats = nil
+	m.clearedtreats = false
+}
+
 // Where appends a list predicates to the PatientMutation builder.
 func (m *PatientMutation) Where(ps ...predicate.Patient) {
 	m.predicates = append(m.predicates, ps...)
@@ -2020,7 +2621,7 @@ func (m *PatientMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PatientMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.repo != nil {
 		edges = append(edges, patient.EdgeRepo)
 	}
@@ -2029,6 +2630,9 @@ func (m *PatientMutation) AddedEdges() []string {
 	}
 	if m.ills != nil {
 		edges = append(edges, patient.EdgeIlls)
+	}
+	if m.treats != nil {
+		edges = append(edges, patient.EdgeTreats)
 	}
 	return edges
 }
@@ -2051,13 +2655,17 @@ func (m *PatientMutation) AddedIDs(name string) []ent.Value {
 		if id := m.ills; id != nil {
 			return []ent.Value{*id}
 		}
+	case patient.EdgeTreats:
+		if id := m.treats; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PatientMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removeddoctor != nil {
 		edges = append(edges, patient.EdgeDoctor)
 	}
@@ -2080,7 +2688,7 @@ func (m *PatientMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PatientMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedrepo {
 		edges = append(edges, patient.EdgeRepo)
 	}
@@ -2089,6 +2697,9 @@ func (m *PatientMutation) ClearedEdges() []string {
 	}
 	if m.clearedills {
 		edges = append(edges, patient.EdgeIlls)
+	}
+	if m.clearedtreats {
+		edges = append(edges, patient.EdgeTreats)
 	}
 	return edges
 }
@@ -2103,6 +2714,8 @@ func (m *PatientMutation) EdgeCleared(name string) bool {
 		return m.cleareddoctor
 	case patient.EdgeIlls:
 		return m.clearedills
+	case patient.EdgeTreats:
+		return m.clearedtreats
 	}
 	return false
 }
@@ -2116,6 +2729,9 @@ func (m *PatientMutation) ClearEdge(name string) error {
 		return nil
 	case patient.EdgeIlls:
 		m.ClearIlls()
+		return nil
+	case patient.EdgeTreats:
+		m.ClearTreats()
 		return nil
 	}
 	return fmt.Errorf("unknown Patient unique edge %s", name)
@@ -2133,6 +2749,9 @@ func (m *PatientMutation) ResetEdge(name string) error {
 		return nil
 	case patient.EdgeIlls:
 		m.ResetIlls()
+		return nil
+	case patient.EdgeTreats:
+		m.ResetTreats()
 		return nil
 	}
 	return fmt.Errorf("unknown Patient edge %s", name)
@@ -2906,4 +3525,531 @@ func (m *RoomMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Room edge %s", name)
+}
+
+// TreatmentMutation represents an operation that mutates the Treatment nodes in the graph.
+type TreatmentMutation struct {
+	config
+	op                     Op
+	typ                    string
+	id                     *int
+	tablets                *string
+	psychologicalTreatment *string
+	survey                 *string
+	clearedFields          map[string]struct{}
+	cured                  map[int]struct{}
+	removedcured           map[int]struct{}
+	clearedcured           bool
+	done                   bool
+	oldValue               func(context.Context) (*Treatment, error)
+	predicates             []predicate.Treatment
+}
+
+var _ ent.Mutation = (*TreatmentMutation)(nil)
+
+// treatmentOption allows management of the mutation configuration using functional options.
+type treatmentOption func(*TreatmentMutation)
+
+// newTreatmentMutation creates new mutation for the Treatment entity.
+func newTreatmentMutation(c config, op Op, opts ...treatmentOption) *TreatmentMutation {
+	m := &TreatmentMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeTreatment,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTreatmentID sets the ID field of the mutation.
+func withTreatmentID(id int) treatmentOption {
+	return func(m *TreatmentMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Treatment
+		)
+		m.oldValue = func(ctx context.Context) (*Treatment, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Treatment.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTreatment sets the old Treatment of the mutation.
+func withTreatment(node *Treatment) treatmentOption {
+	return func(m *TreatmentMutation) {
+		m.oldValue = func(context.Context) (*Treatment, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TreatmentMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TreatmentMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *TreatmentMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *TreatmentMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Treatment.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTablets sets the "tablets" field.
+func (m *TreatmentMutation) SetTablets(s string) {
+	m.tablets = &s
+}
+
+// Tablets returns the value of the "tablets" field in the mutation.
+func (m *TreatmentMutation) Tablets() (r string, exists bool) {
+	v := m.tablets
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTablets returns the old "tablets" field's value of the Treatment entity.
+// If the Treatment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TreatmentMutation) OldTablets(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTablets is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTablets requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTablets: %w", err)
+	}
+	return oldValue.Tablets, nil
+}
+
+// ResetTablets resets all changes to the "tablets" field.
+func (m *TreatmentMutation) ResetTablets() {
+	m.tablets = nil
+}
+
+// SetPsychologicalTreatment sets the "psychologicalTreatment" field.
+func (m *TreatmentMutation) SetPsychologicalTreatment(s string) {
+	m.psychologicalTreatment = &s
+}
+
+// PsychologicalTreatment returns the value of the "psychologicalTreatment" field in the mutation.
+func (m *TreatmentMutation) PsychologicalTreatment() (r string, exists bool) {
+	v := m.psychologicalTreatment
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPsychologicalTreatment returns the old "psychologicalTreatment" field's value of the Treatment entity.
+// If the Treatment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TreatmentMutation) OldPsychologicalTreatment(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPsychologicalTreatment is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPsychologicalTreatment requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPsychologicalTreatment: %w", err)
+	}
+	return oldValue.PsychologicalTreatment, nil
+}
+
+// ResetPsychologicalTreatment resets all changes to the "psychologicalTreatment" field.
+func (m *TreatmentMutation) ResetPsychologicalTreatment() {
+	m.psychologicalTreatment = nil
+}
+
+// SetSurvey sets the "survey" field.
+func (m *TreatmentMutation) SetSurvey(s string) {
+	m.survey = &s
+}
+
+// Survey returns the value of the "survey" field in the mutation.
+func (m *TreatmentMutation) Survey() (r string, exists bool) {
+	v := m.survey
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSurvey returns the old "survey" field's value of the Treatment entity.
+// If the Treatment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TreatmentMutation) OldSurvey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSurvey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSurvey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSurvey: %w", err)
+	}
+	return oldValue.Survey, nil
+}
+
+// ResetSurvey resets all changes to the "survey" field.
+func (m *TreatmentMutation) ResetSurvey() {
+	m.survey = nil
+}
+
+// AddCuredIDs adds the "cured" edge to the Patient entity by ids.
+func (m *TreatmentMutation) AddCuredIDs(ids ...int) {
+	if m.cured == nil {
+		m.cured = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.cured[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCured clears the "cured" edge to the Patient entity.
+func (m *TreatmentMutation) ClearCured() {
+	m.clearedcured = true
+}
+
+// CuredCleared reports if the "cured" edge to the Patient entity was cleared.
+func (m *TreatmentMutation) CuredCleared() bool {
+	return m.clearedcured
+}
+
+// RemoveCuredIDs removes the "cured" edge to the Patient entity by IDs.
+func (m *TreatmentMutation) RemoveCuredIDs(ids ...int) {
+	if m.removedcured == nil {
+		m.removedcured = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.cured, ids[i])
+		m.removedcured[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCured returns the removed IDs of the "cured" edge to the Patient entity.
+func (m *TreatmentMutation) RemovedCuredIDs() (ids []int) {
+	for id := range m.removedcured {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CuredIDs returns the "cured" edge IDs in the mutation.
+func (m *TreatmentMutation) CuredIDs() (ids []int) {
+	for id := range m.cured {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCured resets all changes to the "cured" edge.
+func (m *TreatmentMutation) ResetCured() {
+	m.cured = nil
+	m.clearedcured = false
+	m.removedcured = nil
+}
+
+// Where appends a list predicates to the TreatmentMutation builder.
+func (m *TreatmentMutation) Where(ps ...predicate.Treatment) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the TreatmentMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TreatmentMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Treatment, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *TreatmentMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TreatmentMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Treatment).
+func (m *TreatmentMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TreatmentMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.tablets != nil {
+		fields = append(fields, treatment.FieldTablets)
+	}
+	if m.psychologicalTreatment != nil {
+		fields = append(fields, treatment.FieldPsychologicalTreatment)
+	}
+	if m.survey != nil {
+		fields = append(fields, treatment.FieldSurvey)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TreatmentMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case treatment.FieldTablets:
+		return m.Tablets()
+	case treatment.FieldPsychologicalTreatment:
+		return m.PsychologicalTreatment()
+	case treatment.FieldSurvey:
+		return m.Survey()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TreatmentMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case treatment.FieldTablets:
+		return m.OldTablets(ctx)
+	case treatment.FieldPsychologicalTreatment:
+		return m.OldPsychologicalTreatment(ctx)
+	case treatment.FieldSurvey:
+		return m.OldSurvey(ctx)
+	}
+	return nil, fmt.Errorf("unknown Treatment field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TreatmentMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case treatment.FieldTablets:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTablets(v)
+		return nil
+	case treatment.FieldPsychologicalTreatment:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPsychologicalTreatment(v)
+		return nil
+	case treatment.FieldSurvey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSurvey(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Treatment field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TreatmentMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TreatmentMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TreatmentMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Treatment numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TreatmentMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TreatmentMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TreatmentMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Treatment nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TreatmentMutation) ResetField(name string) error {
+	switch name {
+	case treatment.FieldTablets:
+		m.ResetTablets()
+		return nil
+	case treatment.FieldPsychologicalTreatment:
+		m.ResetPsychologicalTreatment()
+		return nil
+	case treatment.FieldSurvey:
+		m.ResetSurvey()
+		return nil
+	}
+	return fmt.Errorf("unknown Treatment field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TreatmentMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cured != nil {
+		edges = append(edges, treatment.EdgeCured)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TreatmentMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case treatment.EdgeCured:
+		ids := make([]ent.Value, 0, len(m.cured))
+		for id := range m.cured {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TreatmentMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedcured != nil {
+		edges = append(edges, treatment.EdgeCured)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TreatmentMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case treatment.EdgeCured:
+		ids := make([]ent.Value, 0, len(m.removedcured))
+		for id := range m.removedcured {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TreatmentMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedcured {
+		edges = append(edges, treatment.EdgeCured)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TreatmentMutation) EdgeCleared(name string) bool {
+	switch name {
+	case treatment.EdgeCured:
+		return m.clearedcured
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TreatmentMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Treatment unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TreatmentMutation) ResetEdge(name string) error {
+	switch name {
+	case treatment.EdgeCured:
+		m.ResetCured()
+		return nil
+	}
+	return fmt.Errorf("unknown Treatment edge %s", name)
 }

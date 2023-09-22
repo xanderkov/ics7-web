@@ -32,6 +32,8 @@ const (
 	EdgeDoctor = "doctor"
 	// EdgeIlls holds the string denoting the ills edge name in mutations.
 	EdgeIlls = "ills"
+	// EdgeTreats holds the string denoting the treats edge name in mutations.
+	EdgeTreats = "treats"
 	// Table holds the table name of the patient in the database.
 	Table = "patients"
 	// RepoTable is the table that holds the repo relation/edge.
@@ -53,6 +55,13 @@ const (
 	IllsInverseTable = "diseases"
 	// IllsColumn is the table column denoting the ills relation/edge.
 	IllsColumn = "disease_has"
+	// TreatsTable is the table that holds the treats relation/edge.
+	TreatsTable = "patients"
+	// TreatsInverseTable is the table name for the Treatment entity.
+	// It exists in this package in order to avoid circular dependency with the "treatment" package.
+	TreatsInverseTable = "treatments"
+	// TreatsColumn is the table column denoting the treats relation/edge.
+	TreatsColumn = "treatment_cured"
 )
 
 // Columns holds all SQL columns for patient fields.
@@ -71,6 +80,7 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"disease_has",
+	"treatment_cured",
 }
 
 var (
@@ -164,6 +174,13 @@ func ByIllsField(field string, opts ...sql.OrderTermOption) Order {
 		sqlgraph.OrderByNeighborTerms(s, newIllsStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByTreatsField orders the results by treats field.
+func ByTreatsField(field string, opts ...sql.OrderTermOption) Order {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTreatsStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newRepoStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -183,5 +200,12 @@ func newIllsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(IllsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, IllsTable, IllsColumn),
+	)
+}
+func newTreatsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TreatsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, TreatsTable, TreatsColumn),
 	)
 }

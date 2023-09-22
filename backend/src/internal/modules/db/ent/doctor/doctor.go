@@ -22,6 +22,8 @@ const (
 	FieldRole = "role"
 	// EdgeTreats holds the string denoting the treats edge name in mutations.
 	EdgeTreats = "treats"
+	// EdgeAccount holds the string denoting the account edge name in mutations.
+	EdgeAccount = "account"
 	// Table holds the table name of the doctor in the database.
 	Table = "doctors"
 	// TreatsTable is the table that holds the treats relation/edge. The primary key declared below.
@@ -29,6 +31,11 @@ const (
 	// TreatsInverseTable is the table name for the Patient entity.
 	// It exists in this package in order to avoid circular dependency with the "patient" package.
 	TreatsInverseTable = "patients"
+	// AccountTable is the table that holds the account relation/edge. The primary key declared below.
+	AccountTable = "account_is"
+	// AccountInverseTable is the table name for the Account entity.
+	// It exists in this package in order to avoid circular dependency with the "account" package.
+	AccountInverseTable = "accounts"
 )
 
 // Columns holds all SQL columns for doctor fields.
@@ -44,6 +51,9 @@ var (
 	// TreatsPrimaryKey and TreatsColumn2 are the table columns denoting the
 	// primary key for the treats relation (M2M).
 	TreatsPrimaryKey = []string{"doctor_id", "patient_id"}
+	// AccountPrimaryKey and AccountColumn2 are the table columns denoting the
+	// primary key for the account relation (M2M).
+	AccountPrimaryKey = []string{"account_id", "doctor_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -97,10 +107,31 @@ func ByTreats(term sql.OrderTerm, terms ...sql.OrderTerm) Order {
 		sqlgraph.OrderByNeighborTerms(s, newTreatsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAccountCount orders the results by account count.
+func ByAccountCount(opts ...sql.OrderTermOption) Order {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAccountStep(), opts...)
+	}
+}
+
+// ByAccount orders the results by account terms.
+func ByAccount(term sql.OrderTerm, terms ...sql.OrderTerm) Order {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAccountStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTreatsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TreatsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, TreatsTable, TreatsPrimaryKey...),
+	)
+}
+func newAccountStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AccountInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, AccountTable, AccountPrimaryKey...),
 	)
 }

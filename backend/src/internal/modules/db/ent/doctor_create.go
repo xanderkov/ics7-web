@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hospital/internal/modules/db/ent/account"
 	"hospital/internal/modules/db/ent/doctor"
 	"hospital/internal/modules/db/ent/patient"
 
@@ -57,6 +58,21 @@ func (dc *DoctorCreate) AddTreats(p ...*Patient) *DoctorCreate {
 		ids[i] = p[i].ID
 	}
 	return dc.AddTreatIDs(ids...)
+}
+
+// AddAccountIDs adds the "account" edge to the Account entity by IDs.
+func (dc *DoctorCreate) AddAccountIDs(ids ...int) *DoctorCreate {
+	dc.mutation.AddAccountIDs(ids...)
+	return dc
+}
+
+// AddAccount adds the "account" edges to the Account entity.
+func (dc *DoctorCreate) AddAccount(a ...*Account) *DoctorCreate {
+	ids := make([]int, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return dc.AddAccountIDs(ids...)
 }
 
 // Mutation returns the DoctorMutation object of the builder.
@@ -156,6 +172,22 @@ func (dc *DoctorCreate) createSpec() (*Doctor, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(patient.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := dc.mutation.AccountIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   doctor.AccountTable,
+			Columns: doctor.AccountPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
