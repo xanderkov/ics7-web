@@ -56,6 +56,14 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 			disease.DELETE(":id", c.DeleteDisease)
 		}
 
+		treatment := v1.Group("/disease")
+		{
+			treatment.GET(":id", c.ShowTreatment)
+			treatment.GET("", c.ListTreatments)
+			treatment.POST("", c.AddTreatment)
+			treatment.PATCH(":id", c.UpdateTreatment)
+		}
+
 	}
 
 	docs.SwaggerInfo.Title = "Psycho Admin API"

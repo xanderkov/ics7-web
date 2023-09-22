@@ -15,3 +15,9 @@ type NewDoctor struct {
 	Speciality string
 	Role       string
 }
+
+// NewAccount данные нового пользователя
+type NewAccount struct {
+	Login    string // Логин в системе
+	Password string // Пароль
+}
