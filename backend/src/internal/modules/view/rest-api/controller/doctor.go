@@ -56,7 +56,7 @@ func (c *Controller) ListDoctors(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, doctors)
 }
 
-// SingUp AddDoctor godoc
+// AddDoctor  godoc
 // @Summary      Add a Doctor
 // @Description  add Doctor by json
 // @Tags         Doctors
@@ -68,7 +68,7 @@ func (c *Controller) ListDoctors(ctx *gin.Context) {
 // @Failure      404  {object}  httputil.HTTPError
 // @Failure      500  {object}  httputil.HTTPError
 // @Router       /doctors [post]
-func (c *Controller) SingUp(ctx *gin.Context) {
+func (c *Controller) AddDoctor(ctx *gin.Context) {
 
 	var addAccount model.AddDoctor
 	if err := ctx.ShouldBindJSON(&addAccount); err != nil {

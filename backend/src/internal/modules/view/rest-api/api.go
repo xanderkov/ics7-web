@@ -24,7 +24,7 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 		doctors := v1.Group("/doctors")
 		{
 			doctors.GET(":id", c.ShowDoctor)
-			doctors.POST("", c.SingUp)
+			doctors.POST("", c.AddDoctor)
 			doctors.GET("", c.ListDoctors)
 			doctors.PATCH(":id", c.UpdateDoctor)
 			doctors.DELETE(":id", c.DeleteDoctor)
@@ -47,23 +47,28 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 			room.DELETE(":id", c.DeleteRoom)
 		}
 
-		disease := v1.Group("/disease")
+		disease := v1.Group("/diseases")
 		{
 			disease.GET(":id", c.ShowDisease)
-			disease.GET("", c.ListDiseases)
+			disease.GET("", c.ListDisease)
 			disease.POST("", c.AddDisease)
 			disease.PATCH(":id", c.UpdateDisease)
 			disease.DELETE(":id", c.DeleteDisease)
 		}
 
-		treatment := v1.Group("/disease")
+		treatment := v1.Group("/treatments")
 		{
 			treatment.GET(":id", c.ShowTreatment)
 			treatment.GET("", c.ListTreatments)
 			treatment.POST("", c.AddTreatment)
 			treatment.PATCH(":id", c.UpdateTreatment)
+			treatment.DELETE(":id", c.DeleteTreatment)
 		}
 
+		account := v1.Group("/account")
+		{
+			account.POST("", c.AddDoctor)
+		}
 	}
 
 	docs.SwaggerInfo.Title = "Psycho Admin API"

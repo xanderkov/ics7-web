@@ -57,6 +57,17 @@ definitions:
       typeRoom:
         type: string
     type: object
+  dto.Treatment:
+    properties:
+      id:
+        type: integer
+      psychologicalTreatment:
+        type: string
+      survey:
+        type: string
+      tablets:
+        type: string
+    type: object
   httputil.HTTPError:
     properties:
       code:
@@ -138,6 +149,18 @@ definitions:
         example: 1
         format: int64
         type: integer
+    type: object
+  model.AddTreatment:
+    properties:
+      PsychologicalTreatment:
+        example: Заболел
+        type: string
+      Survey:
+        example: "1"
+        type: string
+      Tablets:
+        example: Abrobius
+        type: string
     type: object
   model.Disease:
     properties:
@@ -224,6 +247,22 @@ definitions:
         format: int64
         type: integer
     type: object
+  model.Treatment:
+    properties:
+      PsychologicalTreatment:
+        example: Заболел
+        type: string
+      Survey:
+        example: "1"
+        type: string
+      Tablets:
+        example: Abrobius
+        type: string
+      id:
+        example: 1
+        format: int64
+        type: integer
+    type: object
   model.UpdateDisease:
     properties:
       DegreeOfDanger:
@@ -297,14 +336,60 @@ definitions:
         format: int64
         type: integer
     type: object
+  model.UpdateTreatment:
+    properties:
+      PsychologicalTreatment:
+        example: Заболел
+        type: string
+      Survey:
+        example: "1"
+        type: string
+      Tablets:
+        example: Abrobius
+        type: string
+    type: object
 info:
   contact: {}
 paths:
+  /accounts:
+    post:
+      consumes:
+      - application/json
+      description: add Account by json
+      parameters:
+      - description: Add account
+        in: body
+        name: Account
+        required: true
+        schema:
+          $ref: '#/definitions/model.AddDoctor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Doctor'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Add a Account
+      tags:
+      - Accounts
   /diseases:
     get:
       consumes:
       - application/json
-      description: get Diseases
+      description: get Disease
       produces:
       - application/json
       responses:
@@ -326,9 +411,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/httputil.HTTPError'
-      summary: List Diseases
+      summary: List Disease
       tags:
-      - Diseases
+      - Disease
     post:
       consumes:
       - application/json
@@ -361,7 +446,7 @@ paths:
             $ref: '#/definitions/httputil.HTTPError'
       summary: Add a Disease
       tags:
-      - Diseases
+      - Disease
   /diseases/{id}:
     delete:
       consumes:
@@ -395,7 +480,7 @@ paths:
             $ref: '#/definitions/httputil.HTTPError'
       summary: Delete a disease
       tags:
-      - Diseases
+      - Disease
     get:
       consumes:
       - application/json
@@ -427,7 +512,7 @@ paths:
             $ref: '#/definitions/httputil.HTTPError'
       summary: Show a Disease
       tags:
-      - Diseases
+      - Disease
     patch:
       consumes:
       - application/json
@@ -465,7 +550,7 @@ paths:
             $ref: '#/definitions/httputil.HTTPError'
       summary: Update a disease
       tags:
-      - Diseases
+      - Disease
   /doctors:
     get:
       consumes:
@@ -964,6 +1049,172 @@ paths:
       summary: Update a room
       tags:
       - Rooms
+  /treatments:
+    get:
+      consumes:
+      - application/json
+      description: get Treatments
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Treatment'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: List Treatments
+      tags:
+      - Treatments
+    post:
+      consumes:
+      - application/json
+      description: add Treatment by json
+      parameters:
+      - description: Add treatment
+        in: body
+        name: Treatment
+        required: true
+        schema:
+          $ref: '#/definitions/model.AddTreatment'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Treatment'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Add a Treatment
+      tags:
+      - Treatments
+  /treatments/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete by treatment ID
+      parameters:
+      - description: Treatment ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/model.Treatment'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Delete a treatment
+      tags:
+      - Treatments
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      parameters:
+      - description: Treatment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Treatment'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Show a Treatment
+      tags:
+      - Treatments
+    patch:
+      consumes:
+      - application/json
+      description: Update by json treatment
+      parameters:
+      - description: Treatment ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update treatment
+        in: body
+        name: treatment
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateTreatment'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Treatment'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Update a treatment
+      tags:
+      - Treatments
 securityDefinitions:
   BasicAuth:
     type: basic

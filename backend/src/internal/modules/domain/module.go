@@ -7,6 +7,7 @@ import (
 	"hospital/internal/modules/domain/doctor"
 	"hospital/internal/modules/domain/patient"
 	"hospital/internal/modules/domain/room"
+	"hospital/internal/modules/domain/treatment"
 )
 
 var (
@@ -17,6 +18,7 @@ var (
 		room.Module,
 		auth.Module,
 		disease.Module,
+		treatment.Module,
 	)
 	Invokables = fx.Options(
 
@@ -25,5 +27,6 @@ var (
 		room.Invokables,
 		auth.Invokables,
 		disease.Invokables,
+		treatment.Invokables,
 	)
 )

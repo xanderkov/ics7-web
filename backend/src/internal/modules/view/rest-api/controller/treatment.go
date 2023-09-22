@@ -48,6 +48,7 @@ func (c *Controller) ShowTreatment(ctx *gin.Context) {
 func (c *Controller) ListTreatments(ctx *gin.Context) {
 	//q := ctx.Request.URL.Query().Get("q")
 	treatments, err := c.treatmentService.List(ctx)
+
 	if err != nil {
 		httputil.NewError(ctx, http.StatusNotFound, err)
 		return

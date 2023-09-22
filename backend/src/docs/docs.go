@@ -15,9 +15,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/diseases": {
-            "get": {
-                "description": "get Diseases",
+        "/accounts": {
+            "post": {
+                "description": "add Account by json",
                 "consumes": [
                     "application/json"
                 ],
@@ -25,9 +25,61 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Diseases"
+                    "Accounts"
                 ],
-                "summary": "List Diseases",
+                "summary": "Add a Account",
+                "parameters": [
+                    {
+                        "description": "Add account",
+                        "name": "Account",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.AddDoctor"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Doctor"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/diseases": {
+            "get": {
+                "description": "get Disease",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Disease"
+                ],
+                "summary": "List Disease",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -67,7 +119,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Diseases"
+                    "Disease"
                 ],
                 "summary": "Add a Disease",
                 "parameters": [
@@ -119,7 +171,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Diseases"
+                    "Disease"
                 ],
                 "summary": "Show a Disease",
                 "parameters": [
@@ -167,7 +219,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Diseases"
+                    "Disease"
                 ],
                 "summary": "Delete a disease",
                 "parameters": [
@@ -216,7 +268,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Diseases"
+                    "Disease"
                 ],
                 "summary": "Update a disease",
                 "parameters": [
@@ -1014,6 +1066,256 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/treatments": {
+            "get": {
+                "description": "get Treatments",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Treatments"
+                ],
+                "summary": "List Treatments",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.Treatment"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "add Treatment by json",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Treatments"
+                ],
+                "summary": "Add a Treatment",
+                "parameters": [
+                    {
+                        "description": "Add treatment",
+                        "name": "Treatment",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.AddTreatment"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Treatment"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/treatments/{id}": {
+            "get": {
+                "description": "get string by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Treatments"
+                ],
+                "summary": "Show a Treatment",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Treatment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Treatment"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete by treatment ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Treatments"
+                ],
+                "summary": "Delete a treatment",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Treatment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/model.Treatment"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update by json treatment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Treatments"
+                ],
+                "summary": "Update a treatment",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Treatment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update treatment",
+                        "name": "treatment",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.UpdateTreatment"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Treatment"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1102,6 +1404,23 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "typeRoom": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.Treatment": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "psychologicalTreatment": {
+                    "type": "string"
+                },
+                "survey": {
+                    "type": "string"
+                },
+                "tablets": {
                     "type": "string"
                 }
             }
@@ -1217,6 +1536,23 @@ const docTemplate = `{
                     "type": "integer",
                     "format": "int64",
                     "example": 1
+                }
+            }
+        },
+        "model.AddTreatment": {
+            "type": "object",
+            "properties": {
+                "PsychologicalTreatment": {
+                    "type": "string",
+                    "example": "Заболел"
+                },
+                "Survey": {
+                    "type": "string",
+                    "example": "1"
+                },
+                "Tablets": {
+                    "type": "string",
+                    "example": "Abrobius"
                 }
             }
         },
@@ -1336,6 +1672,28 @@ const docTemplate = `{
                 }
             }
         },
+        "model.Treatment": {
+            "type": "object",
+            "properties": {
+                "PsychologicalTreatment": {
+                    "type": "string",
+                    "example": "Заболел"
+                },
+                "Survey": {
+                    "type": "string",
+                    "example": "1"
+                },
+                "Tablets": {
+                    "type": "string",
+                    "example": "Abrobius"
+                },
+                "id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                }
+            }
+        },
         "model.UpdateDisease": {
             "type": "object",
             "properties": {
@@ -1434,6 +1792,23 @@ const docTemplate = `{
                     "type": "integer",
                     "format": "int64",
                     "example": 1
+                }
+            }
+        },
+        "model.UpdateTreatment": {
+            "type": "object",
+            "properties": {
+                "PsychologicalTreatment": {
+                    "type": "string",
+                    "example": "Заболел"
+                },
+                "Survey": {
+                    "type": "string",
+                    "example": "1"
+                },
+                "Tablets": {
+                    "type": "string",
+                    "example": "Abrobius"
                 }
             }
         }

@@ -12,7 +12,7 @@ import (
 // ShowDisease godoc
 // @Summary      Show a Disease
 // @Description  get string by ID
-// @Tags         Diseases
+// @Tags         Disease
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "Disease ID"
@@ -33,11 +33,11 @@ func (c *Controller) ShowDisease(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, disease)
 }
 
-// ListDiseases godoc
+// ListDisease godoc
 //
-//	@Summary		List Diseases
-//	@Description	get Diseases
-//	@Tags			Diseases
+//	@Summary		List Disease
+//	@Description	get Disease
+//	@Tags			Disease
 //	@Accept			json
 //	@Produce		json
 //	@Success		200	{array}		dto.Disease
@@ -45,21 +45,21 @@ func (c *Controller) ShowDisease(ctx *gin.Context) {
 //	@Failure		404	{object}	httputil.HTTPError
 //	@Failure		500	{object}	httputil.HTTPError
 //	@Router			/diseases [get]
-func (c *Controller) ListDiseases(ctx *gin.Context) {
+func (c *Controller) ListDisease(ctx *gin.Context) {
 	//q := ctx.Request.URL.Query().Get("q")
-	diseases, err := c.diseaseService.List(ctx)
+	disease, err := c.diseaseService.List(ctx)
 	if err != nil {
 		httputil.NewError(ctx, http.StatusNotFound, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, diseases)
+	ctx.JSON(http.StatusOK, disease)
 }
 
 // UpdateDisease godoc
 //
 //	@Summary		Update a disease
 //	@Description	Update by json disease
-//	@Tags			Diseases
+//	@Tags			Disease
 //	@Accept			json
 //	@Produce		json
 //	@Param			id		path		int					true	"Disease ID"
@@ -99,7 +99,7 @@ func (c *Controller) UpdateDisease(ctx *gin.Context) {
 //
 //	@Summary		Delete a disease
 //	@Description	Delete by disease ID
-//	@Tags			Diseases
+//	@Tags			Disease
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path		int	true	"Disease ID"	Format(int64)
@@ -126,7 +126,7 @@ func (c *Controller) DeleteDisease(ctx *gin.Context) {
 // AddDisease godoc
 // @Summary      Add a Disease
 // @Description  add Disease by json
-// @Tags         Diseases
+// @Tags         Disease
 // @Accept       json
 // @Produce      json
 // @Param		 Disease	body	model.AddDisease	true	"Add disease"
