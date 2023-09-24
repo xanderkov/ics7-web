@@ -1190,9 +1190,9 @@ paths:
     get:
       consumes:
       - application/json
-      description: get string by ID
+      description: get string by number
       parameters:
-      - description: Room ID
+      - description: Room Number
         in: path
         name: id
         required: true

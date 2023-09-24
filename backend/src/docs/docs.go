@@ -1163,7 +1163,7 @@ const docTemplate = `{
         },
         "/rooms/{id}": {
             "get": {
-                "description": "get string by ID",
+                "description": "get string by number",
                 "consumes": [
                     "application/json"
                 ],
@@ -1177,7 +1177,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Room ID",
+                        "description": "Room Number",
                         "name": "id",
                         "in": "path",
                         "required": true

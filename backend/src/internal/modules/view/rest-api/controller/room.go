@@ -11,11 +11,11 @@ import (
 
 // ShowRoom godoc
 // @Summary      Show a Room
-// @Description  get string by ID
+// @Description  get string by number
 // @Tags         Rooms
 // @Accept       json
 // @Produce      json
-// @Param        id   path      int  true  "Room ID"
+// @Param        id   path      int  true  "Room Number"
 // @Success      200  {object}  dto.Room
 // @Failure      400  {object}  httputil.HTTPError
 // @Failure      404  {object}  httputil.HTTPError

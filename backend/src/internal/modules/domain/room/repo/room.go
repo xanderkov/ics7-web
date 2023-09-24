@@ -4,6 +4,7 @@ import (
 	"context"
 	"hospital/internal/modules/db"
 	"hospital/internal/modules/db/ent"
+	"hospital/internal/modules/db/ent/room"
 	"hospital/internal/modules/domain/room/dto"
 )
 
@@ -18,7 +19,7 @@ func NewRoomRepo(client *ent.Client) *RoomRepo {
 }
 
 func (r *RoomRepo) GetByNum(ctx context.Context, id int) (*dto.Room, error) {
-	Room, err := r.client.Room.Get(ctx, id)
+	Room, err := r.client.Room.Query().Where(room.NumberEQ(id)).Only(ctx)
 	if err != nil {
 		return nil, db.WrapError(err)
 	}
