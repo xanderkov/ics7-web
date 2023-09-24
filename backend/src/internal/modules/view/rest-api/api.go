@@ -14,7 +14,7 @@ import (
 // @securityDefinitions.basic  BasicAuth
 
 func api(controller *controller.Controller, cfg config.Config, logger *zap.Logger) {
-	address := fmt.Sprintf("localhost:%d", cfg.ApiPort)
+	address := fmt.Sprintf("0.0.0.0:%d", cfg.ApiPort)
 	logger.Info("Server started on address: " + address)
 	r := gin.Default()
 	c := controller
