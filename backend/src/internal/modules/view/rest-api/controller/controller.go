@@ -16,11 +16,13 @@ type Controller struct {
 	roomService      *room_servis.RoomService
 	diseaseService   *disease_servis.DiseaseService
 	treatmentService *treatment_servis.TreatmentService
+	accountService   *auth_serv.AccountService
 }
 
 func NewController(
 	doctorService *doctor_server.DoctorService,
 	authService *auth_serv.AuthService,
+	accountService *auth_serv.AccountService,
 	patientService *patient_servis.PatientService,
 	roomService *room_servis.RoomService,
 	diseaseService *disease_servis.DiseaseService,
@@ -35,6 +37,7 @@ func NewController(
 		roomService:      roomService,
 		diseaseService:   diseaseService,
 		treatmentService: treatmentService,
+		accountService:   accountService,
 	}
 
 	return r

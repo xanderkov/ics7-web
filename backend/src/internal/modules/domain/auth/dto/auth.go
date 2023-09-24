@@ -21,3 +21,21 @@ type NewAccount struct {
 	Login    string // Логин в системе
 	Password string // Пароль
 }
+
+type Account struct {
+	Id       int
+	Login    string // Логин в системе
+	Password string // Пароль
+}
+
+type Accounts []*Account
+
+type CreateAccount struct {
+	Login    string // Логин в системе
+	Password string // Пароль
+}
+
+type UpdateAccount struct {
+	Login    string // Логин в системе
+	Password string // Пароль
+}

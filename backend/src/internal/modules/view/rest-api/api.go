@@ -65,9 +65,15 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 			treatment.DELETE(":id", c.DeleteTreatment)
 		}
 
-		account := v1.Group("/account")
+		account := v1.Group("/accounts")
 		{
-			account.POST("", c.AddDoctor)
+			account.POST("/old", c.AddDoctor)
+
+			account.GET(":id", c.ShowAccount)
+			account.GET("", c.ListAccount)
+			account.POST("", c.AddAccount)
+			account.PATCH(":id", c.UpdateAccount)
+			account.DELETE(":id", c.DeleteAccount)
 		}
 	}
 

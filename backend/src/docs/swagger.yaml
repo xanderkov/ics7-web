@@ -1,4 +1,15 @@
 definitions:
+  dto.Account:
+    properties:
+      id:
+        type: integer
+      login:
+        description: Логин в системе
+        type: string
+      password:
+        description: Пароль
+        type: string
+    type: object
   dto.Disease:
     properties:
       degreeOfDanger:
@@ -75,6 +86,28 @@ definitions:
         type: integer
       message:
         example: status bad request
+        type: string
+    type: object
+  model.Account:
+    properties:
+      Login:
+        example: Login
+        type: string
+      PasswordHash:
+        example: PasswordHash
+        type: string
+      id:
+        example: 1
+        format: int64
+        type: integer
+    type: object
+  model.AddAccount:
+    properties:
+      Login:
+        example: Login
+        type: string
+      PasswordHash:
+        example: PasswordHash
         type: string
     type: object
   model.AddDisease:
@@ -263,6 +296,15 @@ definitions:
         format: int64
         type: integer
     type: object
+  model.UpdateAccount:
+    properties:
+      Login:
+        example: Login
+        type: string
+      PasswordHash:
+        example: PasswordHash
+        type: string
+    type: object
   model.UpdateDisease:
     properties:
       DegreeOfDanger:
@@ -352,14 +394,180 @@ info:
   contact: {}
 paths:
   /accounts:
+    get:
+      consumes:
+      - application/json
+      description: get Account
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Account'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: List Account
+      tags:
+      - Account
     post:
       consumes:
       - application/json
       description: add Account by json
       parameters:
-      - description: Add account
+      - description: Add Account
         in: body
         name: Account
+        required: true
+        schema:
+          $ref: '#/definitions/model.AddAccount'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Add an Account
+      tags:
+      - Account
+  /accounts/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete by Account ID
+      parameters:
+      - description: Account ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/model.Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Delete a Account
+      tags:
+      - Account
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Show an Account
+      tags:
+      - Account
+    patch:
+      consumes:
+      - application/json
+      description: Update by json Account
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update Account
+        in: body
+        name: Account
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateAccount'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Update a Account
+      tags:
+      - Account
+  /accounts/old:
+    post:
+      consumes:
+      - application/json
+      description: add Doctor by json
+      parameters:
+      - description: Add Doctor
+        in: body
+        name: Doctor
         required: true
         schema:
           $ref: '#/definitions/model.AddDoctor'
@@ -382,9 +590,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/httputil.HTTPError'
-      summary: Add a Account
+      summary: Add a Doctor
       tags:
-      - Accounts
+      - Account
   /diseases:
     get:
       consumes:
