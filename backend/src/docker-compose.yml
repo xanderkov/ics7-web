@@ -35,4 +35,5 @@ services:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/html/api:/etc/nginx/html/api
     restart: always

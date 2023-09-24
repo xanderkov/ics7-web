@@ -80,9 +80,12 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 	docs.SwaggerInfo.Title = "Psycho Admin API"
 	docs.SwaggerInfo.Description = "This is psycho admin api."
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "localhost:8090"
+	docs.SwaggerInfo.Host = "localhost:8080"
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	r.Run(address)
+	err := r.Run(address)
+	if err != nil {
+		return
+	}
 }
