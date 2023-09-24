@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	entgo.io/ent v0.12.0
+	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/golang/mock v1.6.0
@@ -21,7 +22,6 @@ require (
 
 require (
 	ariga.io/atlas v0.10.0 // indirect
-	ariga.io/entviz v0.0.0-20230419175438-29569ec22220 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
