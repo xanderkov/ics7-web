@@ -14,6 +14,6 @@ docker compose up -d
 
 ## Ссылки
 
-[swager](http://localhost/api/v1/index.html)
+[swager](http://localhost/api/v2/index.html)
 
 [В теории доступ к админке](http://localhost/admin)

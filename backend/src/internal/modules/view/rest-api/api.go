@@ -2,6 +2,7 @@ package rest_api
 
 import (
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -34,7 +35,7 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 	address := fmt.Sprintf("0.0.0.0:%d", cfg.ApiPort)
 	logger.Info("Server started on address: " + address)
 	r := gin.Default()
-	r.Use(CORSMiddleware())
+	r.Use(cors.Default())
 	c := controller
 
 	v1 := r.Group("/api/v1")
@@ -98,7 +99,7 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 	docs.SwaggerInfo.Title = "Psycho Admin API"
 	docs.SwaggerInfo.Description = "This is psycho admin api."
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "localhost:8080"
+	docs.SwaggerInfo.Host = "localhost:80"
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
