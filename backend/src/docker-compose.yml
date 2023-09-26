@@ -54,4 +54,6 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/html/api:/etc/nginx/html/api
       - ../../../nginx/data:/opt/data
+      - ./Readme.md:/var/www/html/documentation/Readme.md
+      - ../../static:/static
     restart: always
