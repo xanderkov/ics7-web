@@ -2,8 +2,22 @@
 
 package ent
 
+import (
+	"hospital/internal/modules/db/ent/treatment"
+	"hospital/internal/modules/db/schema"
+	"time"
+)
+
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	treatmentFields := schema.Treatment{}.Fields()
+	_ = treatmentFields
+	// treatmentDescUpdatedAt is the schema descriptor for updated_at field.
+	treatmentDescUpdatedAt := treatmentFields[4].Descriptor()
+	// treatment.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	treatment.DefaultUpdatedAt = treatmentDescUpdatedAt.Default.(func() time.Time)
+	// treatment.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	treatment.UpdateDefaultUpdatedAt = treatmentDescUpdatedAt.UpdateDefault.(func() time.Time)
 }
