@@ -139,23 +139,19 @@ func (pu *PatientUpdate) SetIlls(d *Disease) *PatientUpdate {
 	return pu.SetIllsID(d.ID)
 }
 
-// SetTreatsID sets the "treats" edge to the Treatment entity by ID.
-func (pu *PatientUpdate) SetTreatsID(id int) *PatientUpdate {
-	pu.mutation.SetTreatsID(id)
+// AddTreatIDs adds the "treats" edge to the Treatment entity by IDs.
+func (pu *PatientUpdate) AddTreatIDs(ids ...int) *PatientUpdate {
+	pu.mutation.AddTreatIDs(ids...)
 	return pu
 }
 
-// SetNillableTreatsID sets the "treats" edge to the Treatment entity by ID if the given value is not nil.
-func (pu *PatientUpdate) SetNillableTreatsID(id *int) *PatientUpdate {
-	if id != nil {
-		pu = pu.SetTreatsID(*id)
+// AddTreats adds the "treats" edges to the Treatment entity.
+func (pu *PatientUpdate) AddTreats(t ...*Treatment) *PatientUpdate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
-	return pu
-}
-
-// SetTreats sets the "treats" edge to the Treatment entity.
-func (pu *PatientUpdate) SetTreats(t *Treatment) *PatientUpdate {
-	return pu.SetTreatsID(t.ID)
+	return pu.AddTreatIDs(ids...)
 }
 
 // Mutation returns the PatientMutation object of the builder.
@@ -196,10 +192,25 @@ func (pu *PatientUpdate) ClearIlls() *PatientUpdate {
 	return pu
 }
 
-// ClearTreats clears the "treats" edge to the Treatment entity.
+// ClearTreats clears all "treats" edges to the Treatment entity.
 func (pu *PatientUpdate) ClearTreats() *PatientUpdate {
 	pu.mutation.ClearTreats()
 	return pu
+}
+
+// RemoveTreatIDs removes the "treats" edge to Treatment entities by IDs.
+func (pu *PatientUpdate) RemoveTreatIDs(ids ...int) *PatientUpdate {
+	pu.mutation.RemoveTreatIDs(ids...)
+	return pu
+}
+
+// RemoveTreats removes "treats" edges to Treatment entities.
+func (pu *PatientUpdate) RemoveTreats(t ...*Treatment) *PatientUpdate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return pu.RemoveTreatIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -381,8 +392,8 @@ func (pu *PatientUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if pu.mutation.TreatsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
 			Table:   patient.TreatsTable,
 			Columns: []string{patient.TreatsColumn},
 			Bidi:    false,
@@ -392,10 +403,26 @@ func (pu *PatientUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
+	if nodes := pu.mutation.RemovedTreatsIDs(); len(nodes) > 0 && !pu.mutation.TreatsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   patient.TreatsTable,
+			Columns: []string{patient.TreatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(treatment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
 	if nodes := pu.mutation.TreatsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
 			Table:   patient.TreatsTable,
 			Columns: []string{patient.TreatsColumn},
 			Bidi:    false,
@@ -536,23 +563,19 @@ func (puo *PatientUpdateOne) SetIlls(d *Disease) *PatientUpdateOne {
 	return puo.SetIllsID(d.ID)
 }
 
-// SetTreatsID sets the "treats" edge to the Treatment entity by ID.
-func (puo *PatientUpdateOne) SetTreatsID(id int) *PatientUpdateOne {
-	puo.mutation.SetTreatsID(id)
+// AddTreatIDs adds the "treats" edge to the Treatment entity by IDs.
+func (puo *PatientUpdateOne) AddTreatIDs(ids ...int) *PatientUpdateOne {
+	puo.mutation.AddTreatIDs(ids...)
 	return puo
 }
 
-// SetNillableTreatsID sets the "treats" edge to the Treatment entity by ID if the given value is not nil.
-func (puo *PatientUpdateOne) SetNillableTreatsID(id *int) *PatientUpdateOne {
-	if id != nil {
-		puo = puo.SetTreatsID(*id)
+// AddTreats adds the "treats" edges to the Treatment entity.
+func (puo *PatientUpdateOne) AddTreats(t ...*Treatment) *PatientUpdateOne {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
-	return puo
-}
-
-// SetTreats sets the "treats" edge to the Treatment entity.
-func (puo *PatientUpdateOne) SetTreats(t *Treatment) *PatientUpdateOne {
-	return puo.SetTreatsID(t.ID)
+	return puo.AddTreatIDs(ids...)
 }
 
 // Mutation returns the PatientMutation object of the builder.
@@ -593,10 +616,25 @@ func (puo *PatientUpdateOne) ClearIlls() *PatientUpdateOne {
 	return puo
 }
 
-// ClearTreats clears the "treats" edge to the Treatment entity.
+// ClearTreats clears all "treats" edges to the Treatment entity.
 func (puo *PatientUpdateOne) ClearTreats() *PatientUpdateOne {
 	puo.mutation.ClearTreats()
 	return puo
+}
+
+// RemoveTreatIDs removes the "treats" edge to Treatment entities by IDs.
+func (puo *PatientUpdateOne) RemoveTreatIDs(ids ...int) *PatientUpdateOne {
+	puo.mutation.RemoveTreatIDs(ids...)
+	return puo
+}
+
+// RemoveTreats removes "treats" edges to Treatment entities.
+func (puo *PatientUpdateOne) RemoveTreats(t ...*Treatment) *PatientUpdateOne {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return puo.RemoveTreatIDs(ids...)
 }
 
 // Where appends a list predicates to the PatientUpdate builder.
@@ -808,8 +846,8 @@ func (puo *PatientUpdateOne) sqlSave(ctx context.Context) (_node *Patient, err e
 	}
 	if puo.mutation.TreatsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
 			Table:   patient.TreatsTable,
 			Columns: []string{patient.TreatsColumn},
 			Bidi:    false,
@@ -819,10 +857,26 @@ func (puo *PatientUpdateOne) sqlSave(ctx context.Context) (_node *Patient, err e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
+	if nodes := puo.mutation.RemovedTreatsIDs(); len(nodes) > 0 && !puo.mutation.TreatsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   patient.TreatsTable,
+			Columns: []string{patient.TreatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(treatment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
 	if nodes := puo.mutation.TreatsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
 			Table:   patient.TreatsTable,
 			Columns: []string{patient.TreatsColumn},
 			Bidi:    false,

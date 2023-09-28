@@ -147,7 +147,7 @@ func (pq *PatientQuery) QueryTreats() *TreatmentQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(patient.Table, patient.FieldID, selector),
 			sqlgraph.To(treatment.Table, treatment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, patient.TreatsTable, patient.TreatsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, patient.TreatsTable, patient.TreatsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -487,7 +487,7 @@ func (pq *PatientQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pati
 			pq.withTreats != nil,
 		}
 	)
-	if pq.withIlls != nil || pq.withTreats != nil {
+	if pq.withIlls != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -531,8 +531,9 @@ func (pq *PatientQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pati
 		}
 	}
 	if query := pq.withTreats; query != nil {
-		if err := pq.loadTreats(ctx, query, nodes, nil,
-			func(n *Patient, e *Treatment) { n.Edges.Treats = e }); err != nil {
+		if err := pq.loadTreats(ctx, query, nodes,
+			func(n *Patient) { n.Edges.Treats = []*Treatment{} },
+			func(n *Patient, e *Treatment) { n.Edges.Treats = append(n.Edges.Treats, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -662,34 +663,29 @@ func (pq *PatientQuery) loadIlls(ctx context.Context, query *DiseaseQuery, nodes
 	return nil
 }
 func (pq *PatientQuery) loadTreats(ctx context.Context, query *TreatmentQuery, nodes []*Patient, init func(*Patient), assign func(*Patient, *Treatment)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Patient)
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Patient)
 	for i := range nodes {
-		if nodes[i].treatment_cured == nil {
-			continue
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
 		}
-		fk := *nodes[i].treatment_cured
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(treatment.IDIn(ids...))
+	query.Where(predicate.Treatment(func(s *sql.Selector) {
+		s.Where(sql.InValues(patient.TreatsColumn, fks...))
+	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
+		fk := n.PatientNumber
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "treatment_cured" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "patientNumber" returned %v for node %v`, fk, n.ID)
 		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
+		assign(node, n)
 	}
 	return nil
 }

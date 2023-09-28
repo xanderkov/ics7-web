@@ -3,6 +3,8 @@
 package treatment
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
@@ -18,17 +20,21 @@ const (
 	FieldPsychologicalTreatment = "psychological_treatment"
 	// FieldSurvey holds the string denoting the survey field in the database.
 	FieldSurvey = "survey"
-	// EdgeCured holds the string denoting the cured edge name in mutations.
-	EdgeCured = "cured"
+	// FieldPatientNumber holds the string denoting the patientnumber field in the database.
+	FieldPatientNumber = "patient_number"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
+	// EdgeTreat holds the string denoting the treat edge name in mutations.
+	EdgeTreat = "treat"
 	// Table holds the table name of the treatment in the database.
 	Table = "treatments"
-	// CuredTable is the table that holds the cured relation/edge.
-	CuredTable = "patients"
-	// CuredInverseTable is the table name for the Patient entity.
+	// TreatTable is the table that holds the treat relation/edge.
+	TreatTable = "treatments"
+	// TreatInverseTable is the table name for the Patient entity.
 	// It exists in this package in order to avoid circular dependency with the "patient" package.
-	CuredInverseTable = "patients"
-	// CuredColumn is the table column denoting the cured relation/edge.
-	CuredColumn = "treatment_cured"
+	TreatInverseTable = "patients"
+	// TreatColumn is the table column denoting the treat relation/edge.
+	TreatColumn = "patient_number"
 )
 
 // Columns holds all SQL columns for treatment fields.
@@ -37,6 +43,8 @@ var Columns = []string{
 	FieldTablets,
 	FieldPsychologicalTreatment,
 	FieldSurvey,
+	FieldPatientNumber,
+	FieldUpdatedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -48,6 +56,13 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
+	UpdateDefaultUpdatedAt func() time.Time
+)
 
 // Order defines the ordering method for the Treatment queries.
 type Order func(*sql.Selector)
@@ -72,23 +87,26 @@ func BySurvey(opts ...sql.OrderTermOption) Order {
 	return sql.OrderByField(FieldSurvey, opts...).ToFunc()
 }
 
-// ByCuredCount orders the results by cured count.
-func ByCuredCount(opts ...sql.OrderTermOption) Order {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newCuredStep(), opts...)
-	}
+// ByPatientNumber orders the results by the patientNumber field.
+func ByPatientNumber(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldPatientNumber, opts...).ToFunc()
 }
 
-// ByCured orders the results by cured terms.
-func ByCured(term sql.OrderTerm, terms ...sql.OrderTerm) Order {
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByTreatField orders the results by treat field.
+func ByTreatField(field string, opts ...sql.OrderTermOption) Order {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newCuredStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newTreatStep(), sql.OrderByField(field, opts...))
 	}
 }
-func newCuredStep() *sqlgraph.Step {
+func newTreatStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(CuredInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, CuredTable, CuredColumn),
+		sqlgraph.To(TreatInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, TreatTable, TreatColumn),
 	)
 }

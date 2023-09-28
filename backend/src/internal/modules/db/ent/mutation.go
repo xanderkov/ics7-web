@@ -14,6 +14,7 @@ import (
 	"hospital/internal/modules/db/ent/room"
 	"hospital/internal/modules/db/ent/treatment"
 	"sync"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -1086,8 +1087,7 @@ type DoctorMutation struct {
 	treats         map[int]struct{}
 	removedtreats  map[int]struct{}
 	clearedtreats  bool
-	account        map[int]struct{}
-	removedaccount map[int]struct{}
+	account        *int
 	clearedaccount bool
 	done           bool
 	oldValue       func(context.Context) (*Doctor, error)
@@ -1390,14 +1390,9 @@ func (m *DoctorMutation) ResetTreats() {
 	m.removedtreats = nil
 }
 
-// AddAccountIDs adds the "account" edge to the Account entity by ids.
-func (m *DoctorMutation) AddAccountIDs(ids ...int) {
-	if m.account == nil {
-		m.account = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.account[ids[i]] = struct{}{}
-	}
+// SetAccountID sets the "account" edge to the Account entity by id.
+func (m *DoctorMutation) SetAccountID(id int) {
+	m.account = &id
 }
 
 // ClearAccount clears the "account" edge to the Account entity.
@@ -1410,29 +1405,20 @@ func (m *DoctorMutation) AccountCleared() bool {
 	return m.clearedaccount
 }
 
-// RemoveAccountIDs removes the "account" edge to the Account entity by IDs.
-func (m *DoctorMutation) RemoveAccountIDs(ids ...int) {
-	if m.removedaccount == nil {
-		m.removedaccount = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.account, ids[i])
-		m.removedaccount[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedAccount returns the removed IDs of the "account" edge to the Account entity.
-func (m *DoctorMutation) RemovedAccountIDs() (ids []int) {
-	for id := range m.removedaccount {
-		ids = append(ids, id)
+// AccountID returns the "account" edge ID in the mutation.
+func (m *DoctorMutation) AccountID() (id int, exists bool) {
+	if m.account != nil {
+		return *m.account, true
 	}
 	return
 }
 
 // AccountIDs returns the "account" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// AccountID instead. It exists only for internal usage by the builders.
 func (m *DoctorMutation) AccountIDs() (ids []int) {
-	for id := range m.account {
-		ids = append(ids, id)
+	if id := m.account; id != nil {
+		ids = append(ids, *id)
 	}
 	return
 }
@@ -1441,7 +1427,6 @@ func (m *DoctorMutation) AccountIDs() (ids []int) {
 func (m *DoctorMutation) ResetAccount() {
 	m.account = nil
 	m.clearedaccount = false
-	m.removedaccount = nil
 }
 
 // Where appends a list predicates to the DoctorMutation builder.
@@ -1649,11 +1634,9 @@ func (m *DoctorMutation) AddedIDs(name string) []ent.Value {
 		}
 		return ids
 	case doctor.EdgeAccount:
-		ids := make([]ent.Value, 0, len(m.account))
-		for id := range m.account {
-			ids = append(ids, id)
+		if id := m.account; id != nil {
+			return []ent.Value{*id}
 		}
-		return ids
 	}
 	return nil
 }
@@ -1663,9 +1646,6 @@ func (m *DoctorMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 2)
 	if m.removedtreats != nil {
 		edges = append(edges, doctor.EdgeTreats)
-	}
-	if m.removedaccount != nil {
-		edges = append(edges, doctor.EdgeAccount)
 	}
 	return edges
 }
@@ -1677,12 +1657,6 @@ func (m *DoctorMutation) RemovedIDs(name string) []ent.Value {
 	case doctor.EdgeTreats:
 		ids := make([]ent.Value, 0, len(m.removedtreats))
 		for id := range m.removedtreats {
-			ids = append(ids, id)
-		}
-		return ids
-	case doctor.EdgeAccount:
-		ids := make([]ent.Value, 0, len(m.removedaccount))
-		for id := range m.removedaccount {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1718,6 +1692,9 @@ func (m *DoctorMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *DoctorMutation) ClearEdge(name string) error {
 	switch name {
+	case doctor.EdgeAccount:
+		m.ClearAccount()
+		return nil
 	}
 	return fmt.Errorf("unknown Doctor unique edge %s", name)
 }
@@ -1759,7 +1736,8 @@ type PatientMutation struct {
 	cleareddoctor     bool
 	ills              *int
 	clearedills       bool
-	treats            *int
+	treats            map[int]struct{}
+	removedtreats     map[int]struct{}
 	clearedtreats     bool
 	done              bool
 	oldValue          func(context.Context) (*Patient, error)
@@ -2308,9 +2286,14 @@ func (m *PatientMutation) ResetIlls() {
 	m.clearedills = false
 }
 
-// SetTreatsID sets the "treats" edge to the Treatment entity by id.
-func (m *PatientMutation) SetTreatsID(id int) {
-	m.treats = &id
+// AddTreatIDs adds the "treats" edge to the Treatment entity by ids.
+func (m *PatientMutation) AddTreatIDs(ids ...int) {
+	if m.treats == nil {
+		m.treats = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.treats[ids[i]] = struct{}{}
+	}
 }
 
 // ClearTreats clears the "treats" edge to the Treatment entity.
@@ -2323,20 +2306,29 @@ func (m *PatientMutation) TreatsCleared() bool {
 	return m.clearedtreats
 }
 
-// TreatsID returns the "treats" edge ID in the mutation.
-func (m *PatientMutation) TreatsID() (id int, exists bool) {
-	if m.treats != nil {
-		return *m.treats, true
+// RemoveTreatIDs removes the "treats" edge to the Treatment entity by IDs.
+func (m *PatientMutation) RemoveTreatIDs(ids ...int) {
+	if m.removedtreats == nil {
+		m.removedtreats = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.treats, ids[i])
+		m.removedtreats[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTreats returns the removed IDs of the "treats" edge to the Treatment entity.
+func (m *PatientMutation) RemovedTreatsIDs() (ids []int) {
+	for id := range m.removedtreats {
+		ids = append(ids, id)
 	}
 	return
 }
 
 // TreatsIDs returns the "treats" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// TreatsID instead. It exists only for internal usage by the builders.
 func (m *PatientMutation) TreatsIDs() (ids []int) {
-	if id := m.treats; id != nil {
-		ids = append(ids, *id)
+	for id := range m.treats {
+		ids = append(ids, id)
 	}
 	return
 }
@@ -2345,6 +2337,7 @@ func (m *PatientMutation) TreatsIDs() (ids []int) {
 func (m *PatientMutation) ResetTreats() {
 	m.treats = nil
 	m.clearedtreats = false
+	m.removedtreats = nil
 }
 
 // Where appends a list predicates to the PatientMutation builder.
@@ -2656,9 +2649,11 @@ func (m *PatientMutation) AddedIDs(name string) []ent.Value {
 			return []ent.Value{*id}
 		}
 	case patient.EdgeTreats:
-		if id := m.treats; id != nil {
-			return []ent.Value{*id}
+		ids := make([]ent.Value, 0, len(m.treats))
+		for id := range m.treats {
+			ids = append(ids, id)
 		}
+		return ids
 	}
 	return nil
 }
@@ -2668,6 +2663,9 @@ func (m *PatientMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 4)
 	if m.removeddoctor != nil {
 		edges = append(edges, patient.EdgeDoctor)
+	}
+	if m.removedtreats != nil {
+		edges = append(edges, patient.EdgeTreats)
 	}
 	return edges
 }
@@ -2679,6 +2677,12 @@ func (m *PatientMutation) RemovedIDs(name string) []ent.Value {
 	case patient.EdgeDoctor:
 		ids := make([]ent.Value, 0, len(m.removeddoctor))
 		for id := range m.removeddoctor {
+			ids = append(ids, id)
+		}
+		return ids
+	case patient.EdgeTreats:
+		ids := make([]ent.Value, 0, len(m.removedtreats))
+		for id := range m.removedtreats {
 			ids = append(ids, id)
 		}
 		return ids
@@ -2729,9 +2733,6 @@ func (m *PatientMutation) ClearEdge(name string) error {
 		return nil
 	case patient.EdgeIlls:
 		m.ClearIlls()
-		return nil
-	case patient.EdgeTreats:
-		m.ClearTreats()
 		return nil
 	}
 	return fmt.Errorf("unknown Patient unique edge %s", name)
@@ -3536,10 +3537,10 @@ type TreatmentMutation struct {
 	tablets                *string
 	psychologicalTreatment *string
 	survey                 *string
+	updated_at             *time.Time
 	clearedFields          map[string]struct{}
-	cured                  map[int]struct{}
-	removedcured           map[int]struct{}
-	clearedcured           bool
+	treat                  *int
+	clearedtreat           bool
 	done                   bool
 	oldValue               func(context.Context) (*Treatment, error)
 	predicates             []predicate.Treatment
@@ -3751,58 +3752,115 @@ func (m *TreatmentMutation) ResetSurvey() {
 	m.survey = nil
 }
 
-// AddCuredIDs adds the "cured" edge to the Patient entity by ids.
-func (m *TreatmentMutation) AddCuredIDs(ids ...int) {
-	if m.cured == nil {
-		m.cured = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.cured[ids[i]] = struct{}{}
-	}
+// SetPatientNumber sets the "patientNumber" field.
+func (m *TreatmentMutation) SetPatientNumber(i int) {
+	m.treat = &i
 }
 
-// ClearCured clears the "cured" edge to the Patient entity.
-func (m *TreatmentMutation) ClearCured() {
-	m.clearedcured = true
-}
-
-// CuredCleared reports if the "cured" edge to the Patient entity was cleared.
-func (m *TreatmentMutation) CuredCleared() bool {
-	return m.clearedcured
-}
-
-// RemoveCuredIDs removes the "cured" edge to the Patient entity by IDs.
-func (m *TreatmentMutation) RemoveCuredIDs(ids ...int) {
-	if m.removedcured == nil {
-		m.removedcured = make(map[int]struct{})
+// PatientNumber returns the value of the "patientNumber" field in the mutation.
+func (m *TreatmentMutation) PatientNumber() (r int, exists bool) {
+	v := m.treat
+	if v == nil {
+		return
 	}
-	for i := range ids {
-		delete(m.cured, ids[i])
-		m.removedcured[ids[i]] = struct{}{}
-	}
+	return *v, true
 }
 
-// RemovedCured returns the removed IDs of the "cured" edge to the Patient entity.
-func (m *TreatmentMutation) RemovedCuredIDs() (ids []int) {
-	for id := range m.removedcured {
-		ids = append(ids, id)
+// OldPatientNumber returns the old "patientNumber" field's value of the Treatment entity.
+// If the Treatment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TreatmentMutation) OldPatientNumber(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPatientNumber is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPatientNumber requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPatientNumber: %w", err)
+	}
+	return oldValue.PatientNumber, nil
+}
+
+// ResetPatientNumber resets all changes to the "patientNumber" field.
+func (m *TreatmentMutation) ResetPatientNumber() {
+	m.treat = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *TreatmentMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *TreatmentMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Treatment entity.
+// If the Treatment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TreatmentMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *TreatmentMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetTreatID sets the "treat" edge to the Patient entity by id.
+func (m *TreatmentMutation) SetTreatID(id int) {
+	m.treat = &id
+}
+
+// ClearTreat clears the "treat" edge to the Patient entity.
+func (m *TreatmentMutation) ClearTreat() {
+	m.clearedtreat = true
+}
+
+// TreatCleared reports if the "treat" edge to the Patient entity was cleared.
+func (m *TreatmentMutation) TreatCleared() bool {
+	return m.clearedtreat
+}
+
+// TreatID returns the "treat" edge ID in the mutation.
+func (m *TreatmentMutation) TreatID() (id int, exists bool) {
+	if m.treat != nil {
+		return *m.treat, true
 	}
 	return
 }
 
-// CuredIDs returns the "cured" edge IDs in the mutation.
-func (m *TreatmentMutation) CuredIDs() (ids []int) {
-	for id := range m.cured {
-		ids = append(ids, id)
+// TreatIDs returns the "treat" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TreatID instead. It exists only for internal usage by the builders.
+func (m *TreatmentMutation) TreatIDs() (ids []int) {
+	if id := m.treat; id != nil {
+		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetCured resets all changes to the "cured" edge.
-func (m *TreatmentMutation) ResetCured() {
-	m.cured = nil
-	m.clearedcured = false
-	m.removedcured = nil
+// ResetTreat resets all changes to the "treat" edge.
+func (m *TreatmentMutation) ResetTreat() {
+	m.treat = nil
+	m.clearedtreat = false
 }
 
 // Where appends a list predicates to the TreatmentMutation builder.
@@ -3839,7 +3897,7 @@ func (m *TreatmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TreatmentMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 5)
 	if m.tablets != nil {
 		fields = append(fields, treatment.FieldTablets)
 	}
@@ -3848,6 +3906,12 @@ func (m *TreatmentMutation) Fields() []string {
 	}
 	if m.survey != nil {
 		fields = append(fields, treatment.FieldSurvey)
+	}
+	if m.treat != nil {
+		fields = append(fields, treatment.FieldPatientNumber)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, treatment.FieldUpdatedAt)
 	}
 	return fields
 }
@@ -3863,6 +3927,10 @@ func (m *TreatmentMutation) Field(name string) (ent.Value, bool) {
 		return m.PsychologicalTreatment()
 	case treatment.FieldSurvey:
 		return m.Survey()
+	case treatment.FieldPatientNumber:
+		return m.PatientNumber()
+	case treatment.FieldUpdatedAt:
+		return m.UpdatedAt()
 	}
 	return nil, false
 }
@@ -3878,6 +3946,10 @@ func (m *TreatmentMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldPsychologicalTreatment(ctx)
 	case treatment.FieldSurvey:
 		return m.OldSurvey(ctx)
+	case treatment.FieldPatientNumber:
+		return m.OldPatientNumber(ctx)
+	case treatment.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown Treatment field %s", name)
 }
@@ -3908,6 +3980,20 @@ func (m *TreatmentMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSurvey(v)
 		return nil
+	case treatment.FieldPatientNumber:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPatientNumber(v)
+		return nil
+	case treatment.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Treatment field %s", name)
 }
@@ -3915,13 +4001,16 @@ func (m *TreatmentMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *TreatmentMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *TreatmentMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
 	return nil, false
 }
 
@@ -3966,6 +4055,12 @@ func (m *TreatmentMutation) ResetField(name string) error {
 	case treatment.FieldSurvey:
 		m.ResetSurvey()
 		return nil
+	case treatment.FieldPatientNumber:
+		m.ResetPatientNumber()
+		return nil
+	case treatment.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
 	}
 	return fmt.Errorf("unknown Treatment field %s", name)
 }
@@ -3973,8 +4068,8 @@ func (m *TreatmentMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TreatmentMutation) AddedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.cured != nil {
-		edges = append(edges, treatment.EdgeCured)
+	if m.treat != nil {
+		edges = append(edges, treatment.EdgeTreat)
 	}
 	return edges
 }
@@ -3983,12 +4078,10 @@ func (m *TreatmentMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *TreatmentMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case treatment.EdgeCured:
-		ids := make([]ent.Value, 0, len(m.cured))
-		for id := range m.cured {
-			ids = append(ids, id)
+	case treatment.EdgeTreat:
+		if id := m.treat; id != nil {
+			return []ent.Value{*id}
 		}
-		return ids
 	}
 	return nil
 }
@@ -3996,31 +4089,20 @@ func (m *TreatmentMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TreatmentMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.removedcured != nil {
-		edges = append(edges, treatment.EdgeCured)
-	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *TreatmentMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case treatment.EdgeCured:
-		ids := make([]ent.Value, 0, len(m.removedcured))
-		for id := range m.removedcured {
-			ids = append(ids, id)
-		}
-		return ids
-	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TreatmentMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.clearedcured {
-		edges = append(edges, treatment.EdgeCured)
+	if m.clearedtreat {
+		edges = append(edges, treatment.EdgeTreat)
 	}
 	return edges
 }
@@ -4029,8 +4111,8 @@ func (m *TreatmentMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *TreatmentMutation) EdgeCleared(name string) bool {
 	switch name {
-	case treatment.EdgeCured:
-		return m.clearedcured
+	case treatment.EdgeTreat:
+		return m.clearedtreat
 	}
 	return false
 }
@@ -4039,6 +4121,9 @@ func (m *TreatmentMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *TreatmentMutation) ClearEdge(name string) error {
 	switch name {
+	case treatment.EdgeTreat:
+		m.ClearTreat()
+		return nil
 	}
 	return fmt.Errorf("unknown Treatment unique edge %s", name)
 }
@@ -4047,8 +4132,8 @@ func (m *TreatmentMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *TreatmentMutation) ResetEdge(name string) error {
 	switch name {
-	case treatment.EdgeCured:
-		m.ResetCured()
+	case treatment.EdgeTreat:
+		m.ResetTreat()
 		return nil
 	}
 	return fmt.Errorf("unknown Treatment edge %s", name)

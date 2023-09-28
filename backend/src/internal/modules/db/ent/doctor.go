@@ -4,6 +4,7 @@ package ent
 
 import (
 	"fmt"
+	"hospital/internal/modules/db/ent/account"
 	"hospital/internal/modules/db/ent/doctor"
 	"strings"
 
@@ -27,6 +28,7 @@ type Doctor struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the DoctorQuery when eager-loading is set.
 	Edges        DoctorEdges `json:"edges"`
+	account_is   *int
 	selectValues sql.SelectValues
 }
 
@@ -35,7 +37,7 @@ type DoctorEdges struct {
 	// Treats holds the value of the treats edge.
 	Treats []*Patient `json:"treats,omitempty"`
 	// Account holds the value of the account edge.
-	Account []*Account `json:"account,omitempty"`
+	Account *Account `json:"account,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
@@ -51,9 +53,13 @@ func (e DoctorEdges) TreatsOrErr() ([]*Patient, error) {
 }
 
 // AccountOrErr returns the Account value or an error if the edge
-// was not loaded in eager-loading.
-func (e DoctorEdges) AccountOrErr() ([]*Account, error) {
+// was not loaded in eager-loading, or loaded but was not found.
+func (e DoctorEdges) AccountOrErr() (*Account, error) {
 	if e.loadedTypes[1] {
+		if e.Account == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: account.Label}
+		}
 		return e.Account, nil
 	}
 	return nil, &NotLoadedError{edge: "account"}
@@ -68,6 +74,8 @@ func (*Doctor) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case doctor.FieldTokenId, doctor.FieldSurname, doctor.FieldSpeciality, doctor.FieldRole:
 			values[i] = new(sql.NullString)
+		case doctor.ForeignKeys[0]: // account_is
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -112,6 +120,13 @@ func (d *Doctor) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field role", values[i])
 			} else if value.Valid {
 				d.Role = value.String
+			}
+		case doctor.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field account_is", value)
+			} else if value.Valid {
+				d.account_is = new(int)
+				*d.account_is = int(value.Int64)
 			}
 		default:
 			d.selectValues.Set(columns[i], values[i])

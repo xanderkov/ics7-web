@@ -4,6 +4,7 @@ package treatment
 
 import (
 	"hospital/internal/modules/db/ent/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -67,6 +68,16 @@ func PsychologicalTreatment(v string) predicate.Treatment {
 // Survey applies equality check predicate on the "survey" field. It's identical to SurveyEQ.
 func Survey(v string) predicate.Treatment {
 	return predicate.Treatment(sql.FieldEQ(FieldSurvey, v))
+}
+
+// PatientNumber applies equality check predicate on the "patientNumber" field. It's identical to PatientNumberEQ.
+func PatientNumber(v int) predicate.Treatment {
+	return predicate.Treatment(sql.FieldEQ(FieldPatientNumber, v))
+}
+
+// UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
+func UpdatedAt(v time.Time) predicate.Treatment {
+	return predicate.Treatment(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
 // TabletsEQ applies the EQ predicate on the "tablets" field.
@@ -264,21 +275,81 @@ func SurveyContainsFold(v string) predicate.Treatment {
 	return predicate.Treatment(sql.FieldContainsFold(FieldSurvey, v))
 }
 
-// HasCured applies the HasEdge predicate on the "cured" edge.
-func HasCured() predicate.Treatment {
+// PatientNumberEQ applies the EQ predicate on the "patientNumber" field.
+func PatientNumberEQ(v int) predicate.Treatment {
+	return predicate.Treatment(sql.FieldEQ(FieldPatientNumber, v))
+}
+
+// PatientNumberNEQ applies the NEQ predicate on the "patientNumber" field.
+func PatientNumberNEQ(v int) predicate.Treatment {
+	return predicate.Treatment(sql.FieldNEQ(FieldPatientNumber, v))
+}
+
+// PatientNumberIn applies the In predicate on the "patientNumber" field.
+func PatientNumberIn(vs ...int) predicate.Treatment {
+	return predicate.Treatment(sql.FieldIn(FieldPatientNumber, vs...))
+}
+
+// PatientNumberNotIn applies the NotIn predicate on the "patientNumber" field.
+func PatientNumberNotIn(vs ...int) predicate.Treatment {
+	return predicate.Treatment(sql.FieldNotIn(FieldPatientNumber, vs...))
+}
+
+// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
+func UpdatedAtEQ(v time.Time) predicate.Treatment {
+	return predicate.Treatment(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
+func UpdatedAtNEQ(v time.Time) predicate.Treatment {
+	return predicate.Treatment(sql.FieldNEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtIn applies the In predicate on the "updated_at" field.
+func UpdatedAtIn(vs ...time.Time) predicate.Treatment {
+	return predicate.Treatment(sql.FieldIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
+func UpdatedAtNotIn(vs ...time.Time) predicate.Treatment {
+	return predicate.Treatment(sql.FieldNotIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtGT applies the GT predicate on the "updated_at" field.
+func UpdatedAtGT(v time.Time) predicate.Treatment {
+	return predicate.Treatment(sql.FieldGT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
+func UpdatedAtGTE(v time.Time) predicate.Treatment {
+	return predicate.Treatment(sql.FieldGTE(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLT applies the LT predicate on the "updated_at" field.
+func UpdatedAtLT(v time.Time) predicate.Treatment {
+	return predicate.Treatment(sql.FieldLT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
+func UpdatedAtLTE(v time.Time) predicate.Treatment {
+	return predicate.Treatment(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// HasTreat applies the HasEdge predicate on the "treat" edge.
+func HasTreat() predicate.Treatment {
 	return predicate.Treatment(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, CuredTable, CuredColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, TreatTable, TreatColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasCuredWith applies the HasEdge predicate on the "cured" edge with a given conditions (other predicates).
-func HasCuredWith(preds ...predicate.Patient) predicate.Treatment {
+// HasTreatWith applies the HasEdge predicate on the "treat" edge with a given conditions (other predicates).
+func HasTreatWith(preds ...predicate.Patient) predicate.Treatment {
 	return predicate.Treatment(func(s *sql.Selector) {
-		step := newCuredStep()
+		step := newTreatStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

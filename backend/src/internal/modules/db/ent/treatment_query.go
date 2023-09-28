@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
 	"hospital/internal/modules/db/ent/patient"
 	"hospital/internal/modules/db/ent/predicate"
@@ -23,7 +22,7 @@ type TreatmentQuery struct {
 	order      []treatment.Order
 	inters     []Interceptor
 	predicates []predicate.Treatment
-	withCured  *PatientQuery
+	withTreat  *PatientQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -60,8 +59,8 @@ func (tq *TreatmentQuery) Order(o ...treatment.Order) *TreatmentQuery {
 	return tq
 }
 
-// QueryCured chains the current query on the "cured" edge.
-func (tq *TreatmentQuery) QueryCured() *PatientQuery {
+// QueryTreat chains the current query on the "treat" edge.
+func (tq *TreatmentQuery) QueryTreat() *PatientQuery {
 	query := (&PatientClient{config: tq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := tq.prepareQuery(ctx); err != nil {
@@ -74,7 +73,7 @@ func (tq *TreatmentQuery) QueryCured() *PatientQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(treatment.Table, treatment.FieldID, selector),
 			sqlgraph.To(patient.Table, patient.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, treatment.CuredTable, treatment.CuredColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, treatment.TreatTable, treatment.TreatColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -274,21 +273,21 @@ func (tq *TreatmentQuery) Clone() *TreatmentQuery {
 		order:      append([]treatment.Order{}, tq.order...),
 		inters:     append([]Interceptor{}, tq.inters...),
 		predicates: append([]predicate.Treatment{}, tq.predicates...),
-		withCured:  tq.withCured.Clone(),
+		withTreat:  tq.withTreat.Clone(),
 		// clone intermediate query.
 		sql:  tq.sql.Clone(),
 		path: tq.path,
 	}
 }
 
-// WithCured tells the query-builder to eager-load the nodes that are connected to
-// the "cured" edge. The optional arguments are used to configure the query builder of the edge.
-func (tq *TreatmentQuery) WithCured(opts ...func(*PatientQuery)) *TreatmentQuery {
+// WithTreat tells the query-builder to eager-load the nodes that are connected to
+// the "treat" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TreatmentQuery) WithTreat(opts ...func(*PatientQuery)) *TreatmentQuery {
 	query := (&PatientClient{config: tq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	tq.withCured = query
+	tq.withTreat = query
 	return tq
 }
 
@@ -371,7 +370,7 @@ func (tq *TreatmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tr
 		nodes       = []*Treatment{}
 		_spec       = tq.querySpec()
 		loadedTypes = [1]bool{
-			tq.withCured != nil,
+			tq.withTreat != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -392,44 +391,41 @@ func (tq *TreatmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Tr
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := tq.withCured; query != nil {
-		if err := tq.loadCured(ctx, query, nodes,
-			func(n *Treatment) { n.Edges.Cured = []*Patient{} },
-			func(n *Treatment, e *Patient) { n.Edges.Cured = append(n.Edges.Cured, e) }); err != nil {
+	if query := tq.withTreat; query != nil {
+		if err := tq.loadTreat(ctx, query, nodes, nil,
+			func(n *Treatment, e *Patient) { n.Edges.Treat = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (tq *TreatmentQuery) loadCured(ctx context.Context, query *PatientQuery, nodes []*Treatment, init func(*Treatment), assign func(*Treatment, *Patient)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*Treatment)
+func (tq *TreatmentQuery) loadTreat(ctx context.Context, query *PatientQuery, nodes []*Treatment, init func(*Treatment), assign func(*Treatment, *Patient)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Treatment)
 	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
+		fk := nodes[i].PatientNumber
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
 		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	query.withFKs = true
-	query.Where(predicate.Patient(func(s *sql.Selector) {
-		s.Where(sql.InValues(treatment.CuredColumn, fks...))
-	}))
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(patient.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.treatment_cured
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "treatment_cured" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "treatment_cured" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "patientNumber" returned %v`, n.ID)
 		}
-		assign(node, n)
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }
@@ -458,6 +454,9 @@ func (tq *TreatmentQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != treatment.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if tq.withTreat != nil {
+			_spec.Node.AddColumnOnce(treatment.FieldPatientNumber)
 		}
 	}
 	if ps := tq.predicates; len(ps) > 0 {

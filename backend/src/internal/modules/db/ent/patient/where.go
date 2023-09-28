@@ -498,7 +498,7 @@ func HasTreats() predicate.Patient {
 	return predicate.Patient(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, TreatsTable, TreatsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, TreatsTable, TreatsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

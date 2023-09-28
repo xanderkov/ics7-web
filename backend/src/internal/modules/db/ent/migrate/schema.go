@@ -40,12 +40,21 @@ var (
 		{Name: "surname", Type: field.TypeString},
 		{Name: "speciality", Type: field.TypeString},
 		{Name: "role", Type: field.TypeString},
+		{Name: "account_is", Type: field.TypeInt, Nullable: true},
 	}
 	// DoctorsTable holds the schema information for the "doctors" table.
 	DoctorsTable = &schema.Table{
 		Name:       "doctors",
 		Columns:    DoctorsColumns,
 		PrimaryKey: []*schema.Column{DoctorsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "doctors_accounts_is",
+				Columns:    []*schema.Column{DoctorsColumns[5]},
+				RefColumns: []*schema.Column{AccountsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// PatientsColumns holds the columns for the "patients" table.
 	PatientsColumns = []*schema.Column{
@@ -58,7 +67,6 @@ var (
 		{Name: "degree_of_danger", Type: field.TypeInt},
 		{Name: "disease_has", Type: field.TypeInt, Nullable: true},
 		{Name: "room_number", Type: field.TypeInt},
-		{Name: "treatment_cured", Type: field.TypeInt, Nullable: true},
 	}
 	// PatientsTable holds the schema information for the "patients" table.
 	PatientsTable = &schema.Table{
@@ -77,12 +85,6 @@ var (
 				Columns:    []*schema.Column{PatientsColumns[8]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
 				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "patients_treatments_cured",
-				Columns:    []*schema.Column{PatientsColumns[9]},
-				RefColumns: []*schema.Column{TreatmentsColumns[0]},
-				OnDelete:   schema.SetNull,
 			},
 		},
 	}
@@ -107,35 +109,20 @@ var (
 		{Name: "tablets", Type: field.TypeString},
 		{Name: "psychological_treatment", Type: field.TypeString},
 		{Name: "survey", Type: field.TypeString},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "patient_number", Type: field.TypeInt},
 	}
 	// TreatmentsTable holds the schema information for the "treatments" table.
 	TreatmentsTable = &schema.Table{
 		Name:       "treatments",
 		Columns:    TreatmentsColumns,
 		PrimaryKey: []*schema.Column{TreatmentsColumns[0]},
-	}
-	// AccountIsColumns holds the columns for the "account_is" table.
-	AccountIsColumns = []*schema.Column{
-		{Name: "account_id", Type: field.TypeInt},
-		{Name: "doctor_id", Type: field.TypeInt},
-	}
-	// AccountIsTable holds the schema information for the "account_is" table.
-	AccountIsTable = &schema.Table{
-		Name:       "account_is",
-		Columns:    AccountIsColumns,
-		PrimaryKey: []*schema.Column{AccountIsColumns[0], AccountIsColumns[1]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "account_is_account_id",
-				Columns:    []*schema.Column{AccountIsColumns[0]},
-				RefColumns: []*schema.Column{AccountsColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "account_is_doctor_id",
-				Columns:    []*schema.Column{AccountIsColumns[1]},
-				RefColumns: []*schema.Column{DoctorsColumns[0]},
-				OnDelete:   schema.Cascade,
+				Symbol:     "treatments_patients_treats",
+				Columns:    []*schema.Column{TreatmentsColumns[5]},
+				RefColumns: []*schema.Column{PatientsColumns[0]},
+				OnDelete:   schema.NoAction,
 			},
 		},
 	}
@@ -172,17 +159,15 @@ var (
 		PatientsTable,
 		RoomsTable,
 		TreatmentsTable,
-		AccountIsTable,
 		DoctorPatientTable,
 	}
 )
 
 func init() {
+	DoctorsTable.ForeignKeys[0].RefTable = AccountsTable
 	PatientsTable.ForeignKeys[0].RefTable = DiseasesTable
 	PatientsTable.ForeignKeys[1].RefTable = RoomsTable
-	PatientsTable.ForeignKeys[2].RefTable = TreatmentsTable
-	AccountIsTable.ForeignKeys[0].RefTable = AccountsTable
-	AccountIsTable.ForeignKeys[1].RefTable = DoctorsTable
+	TreatmentsTable.ForeignKeys[0].RefTable = PatientsTable
 	DoctorPatientTable.ForeignKeys[0].RefTable = DoctorsTable
 	DoctorPatientTable.ForeignKeys[1].RefTable = PatientsTable
 }

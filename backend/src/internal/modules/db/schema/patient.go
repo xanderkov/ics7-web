@@ -37,8 +37,6 @@ func (Patient) Edges() []ent.Edge {
 		edge.From("ills", Disease.Type).
 			Ref("has").
 			Unique(),
-		edge.From("treats", Treatment.Type).
-			Ref("cured").
-			Unique(),
+		edge.To("treats", Treatment.Type),
 	}
 }

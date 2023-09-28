@@ -56,12 +56,12 @@ const (
 	// IllsColumn is the table column denoting the ills relation/edge.
 	IllsColumn = "disease_has"
 	// TreatsTable is the table that holds the treats relation/edge.
-	TreatsTable = "patients"
+	TreatsTable = "treatments"
 	// TreatsInverseTable is the table name for the Treatment entity.
 	// It exists in this package in order to avoid circular dependency with the "treatment" package.
 	TreatsInverseTable = "treatments"
 	// TreatsColumn is the table column denoting the treats relation/edge.
-	TreatsColumn = "treatment_cured"
+	TreatsColumn = "patient_number"
 )
 
 // Columns holds all SQL columns for patient fields.
@@ -80,7 +80,6 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"disease_has",
-	"treatment_cured",
 }
 
 var (
@@ -175,10 +174,17 @@ func ByIllsField(field string, opts ...sql.OrderTermOption) Order {
 	}
 }
 
-// ByTreatsField orders the results by treats field.
-func ByTreatsField(field string, opts ...sql.OrderTermOption) Order {
+// ByTreatsCount orders the results by treats count.
+func ByTreatsCount(opts ...sql.OrderTermOption) Order {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newTreatsStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborsCount(s, newTreatsStep(), opts...)
+	}
+}
+
+// ByTreats orders the results by treats terms.
+func ByTreats(term sql.OrderTerm, terms ...sql.OrderTerm) Order {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTreatsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newRepoStep() *sqlgraph.Step {
@@ -206,6 +212,6 @@ func newTreatsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TreatsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, TreatsTable, TreatsColumn),
+		sqlgraph.Edge(sqlgraph.O2M, false, TreatsTable, TreatsColumn),
 	)
 }

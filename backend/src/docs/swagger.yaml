@@ -72,11 +72,15 @@ definitions:
     properties:
       id:
         type: integer
+      patientNumber:
+        type: integer
       psychologicalTreatment:
         type: string
       survey:
         type: string
       tablets:
+        type: string
+      updateAt:
         type: string
     type: object
   httputil.HTTPError:
@@ -185,6 +189,9 @@ definitions:
     type: object
   model.AddTreatment:
     properties:
+      PatientNumber:
+        example: 1
+        type: integer
       PsychologicalTreatment:
         example: Заболел
         type: string
@@ -193,6 +200,9 @@ definitions:
         type: string
       Tablets:
         example: Abrobius
+        type: string
+      UpdatedAt:
+        example: "1"
         type: string
     type: object
   model.Disease:
@@ -282,6 +292,9 @@ definitions:
     type: object
   model.Treatment:
     properties:
+      PatientNumber:
+        example: 1
+        type: integer
       PsychologicalTreatment:
         example: Заболел
         type: string
@@ -290,6 +303,9 @@ definitions:
         type: string
       Tablets:
         example: Abrobius
+        type: string
+      UpdatedAt:
+        example: "1"
         type: string
       id:
         example: 1
@@ -380,6 +396,9 @@ definitions:
     type: object
   model.UpdateTreatment:
     properties:
+      PatientNumber:
+        example: 1
+        type: integer
       PsychologicalTreatment:
         example: Заболел
         type: string
@@ -388,6 +407,9 @@ definitions:
         type: string
       Tablets:
         example: Abrobius
+        type: string
+      UpdatedAt:
+        example: "1"
         type: string
     type: object
 info:

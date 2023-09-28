@@ -1680,6 +1680,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "patientNumber": {
+                    "type": "integer"
+                },
                 "psychologicalTreatment": {
                     "type": "string"
                 },
@@ -1687,6 +1690,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "tablets": {
+                    "type": "string"
+                },
+                "updateAt": {
                     "type": "string"
                 }
             }
@@ -1839,6 +1845,10 @@ const docTemplate = `{
         "model.AddTreatment": {
             "type": "object",
             "properties": {
+                "PatientNumber": {
+                    "type": "integer",
+                    "example": 1
+                },
                 "PsychologicalTreatment": {
                     "type": "string",
                     "example": "Заболел"
@@ -1850,6 +1860,10 @@ const docTemplate = `{
                 "Tablets": {
                     "type": "string",
                     "example": "Abrobius"
+                },
+                "UpdatedAt": {
+                    "type": "string",
+                    "example": "1"
                 }
             }
         },
@@ -1972,6 +1986,10 @@ const docTemplate = `{
         "model.Treatment": {
             "type": "object",
             "properties": {
+                "PatientNumber": {
+                    "type": "integer",
+                    "example": 1
+                },
                 "PsychologicalTreatment": {
                     "type": "string",
                     "example": "Заболел"
@@ -1983,6 +2001,10 @@ const docTemplate = `{
                 "Tablets": {
                     "type": "string",
                     "example": "Abrobius"
+                },
+                "UpdatedAt": {
+                    "type": "string",
+                    "example": "1"
                 },
                 "id": {
                     "type": "integer",
@@ -2108,6 +2130,10 @@ const docTemplate = `{
         "model.UpdateTreatment": {
             "type": "object",
             "properties": {
+                "PatientNumber": {
+                    "type": "integer",
+                    "example": 1
+                },
                 "PsychologicalTreatment": {
                     "type": "string",
                     "example": "Заболел"
@@ -2119,6 +2145,10 @@ const docTemplate = `{
                 "Tablets": {
                     "type": "string",
                     "example": "Abrobius"
+                },
+                "UpdatedAt": {
+                    "type": "string",
+                    "example": "1"
                 }
             }
         }

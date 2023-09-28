@@ -1669,6 +1669,9 @@
                 "id": {
                     "type": "integer"
                 },
+                "patientNumber": {
+                    "type": "integer"
+                },
                 "psychologicalTreatment": {
                     "type": "string"
                 },
@@ -1676,6 +1679,9 @@
                     "type": "string"
                 },
                 "tablets": {
+                    "type": "string"
+                },
+                "updateAt": {
                     "type": "string"
                 }
             }
@@ -1828,6 +1834,10 @@
         "model.AddTreatment": {
             "type": "object",
             "properties": {
+                "PatientNumber": {
+                    "type": "integer",
+                    "example": 1
+                },
                 "PsychologicalTreatment": {
                     "type": "string",
                     "example": "Заболел"
@@ -1839,6 +1849,10 @@
                 "Tablets": {
                     "type": "string",
                     "example": "Abrobius"
+                },
+                "UpdatedAt": {
+                    "type": "string",
+                    "example": "1"
                 }
             }
         },
@@ -1961,6 +1975,10 @@
         "model.Treatment": {
             "type": "object",
             "properties": {
+                "PatientNumber": {
+                    "type": "integer",
+                    "example": 1
+                },
                 "PsychologicalTreatment": {
                     "type": "string",
                     "example": "Заболел"
@@ -1972,6 +1990,10 @@
                 "Tablets": {
                     "type": "string",
                     "example": "Abrobius"
+                },
+                "UpdatedAt": {
+                    "type": "string",
+                    "example": "1"
                 },
                 "id": {
                     "type": "integer",
@@ -2097,6 +2119,10 @@
         "model.UpdateTreatment": {
             "type": "object",
             "properties": {
+                "PatientNumber": {
+                    "type": "integer",
+                    "example": 1
+                },
                 "PsychologicalTreatment": {
                     "type": "string",
                     "example": "Заболел"
@@ -2108,6 +2134,10 @@
                 "Tablets": {
                     "type": "string",
                     "example": "Abrobius"
+                },
+                "UpdatedAt": {
+                    "type": "string",
+                    "example": "1"
                 }
             }
         }

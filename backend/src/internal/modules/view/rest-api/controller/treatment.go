@@ -87,6 +87,8 @@ func (c *Controller) UpdateTreatment(ctx *gin.Context) {
 		PsychologicalTreatment: updateTreatment.PsychologicalTreatment,
 		Tablets:                updateTreatment.Tablets,
 		Survey:                 updateTreatment.Survey,
+		PatientNumber:          updateTreatment.PatientNumber,
+		UpdateAt:               updateTreatment.UpdatedAt,
 	}
 	treatmentUpdated, err := c.treatmentService.Update(ctx, aid, treatment)
 	if err != nil {
@@ -146,6 +148,8 @@ func (c *Controller) AddTreatment(ctx *gin.Context) {
 		PsychologicalTreatment: addTreatment.PsychologicalTreatment,
 		Tablets:                addTreatment.Tablets,
 		Survey:                 addTreatment.Survey,
+		PatientNumber:          addTreatment.PatientNumber,
+		UpdateAt:               addTreatment.UpdatedAt,
 	}
 	treatment, err := c.treatmentService.Create(ctx, newTreatment)
 	if err != nil {

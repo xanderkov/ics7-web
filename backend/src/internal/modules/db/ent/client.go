@@ -338,7 +338,7 @@ func (c *AccountClient) QueryIs(a *Account) *DoctorQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(account.Table, account.FieldID, id),
 			sqlgraph.To(doctor.Table, doctor.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, account.IsTable, account.IsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, account.IsTable, account.IsColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -622,7 +622,7 @@ func (c *DoctorClient) QueryAccount(d *Doctor) *AccountQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(doctor.Table, doctor.FieldID, id),
 			sqlgraph.To(account.Table, account.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, doctor.AccountTable, doctor.AccountPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, doctor.AccountTable, doctor.AccountColumn),
 		)
 		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
 		return fromV, nil
@@ -804,7 +804,7 @@ func (c *PatientClient) QueryTreats(pa *Patient) *TreatmentQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(patient.Table, patient.FieldID, id),
 			sqlgraph.To(treatment.Table, treatment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, patient.TreatsTable, patient.TreatsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, patient.TreatsTable, patient.TreatsColumn),
 		)
 		fromV = sqlgraph.Neighbors(pa.driver.Dialect(), step)
 		return fromV, nil
@@ -1064,15 +1064,15 @@ func (c *TreatmentClient) GetX(ctx context.Context, id int) *Treatment {
 	return obj
 }
 
-// QueryCured queries the cured edge of a Treatment.
-func (c *TreatmentClient) QueryCured(t *Treatment) *PatientQuery {
+// QueryTreat queries the treat edge of a Treatment.
+func (c *TreatmentClient) QueryTreat(t *Treatment) *PatientQuery {
 	query := (&PatientClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(treatment.Table, treatment.FieldID, id),
 			sqlgraph.To(patient.Table, patient.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, treatment.CuredTable, treatment.CuredColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, treatment.TreatTable, treatment.TreatColumn),
 		)
 		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
 		return fromV, nil

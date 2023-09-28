@@ -20,11 +20,13 @@ const (
 	EdgeIs = "is"
 	// Table holds the table name of the account in the database.
 	Table = "accounts"
-	// IsTable is the table that holds the is relation/edge. The primary key declared below.
-	IsTable = "account_is"
+	// IsTable is the table that holds the is relation/edge.
+	IsTable = "doctors"
 	// IsInverseTable is the table name for the Doctor entity.
 	// It exists in this package in order to avoid circular dependency with the "doctor" package.
 	IsInverseTable = "doctors"
+	// IsColumn is the table column denoting the is relation/edge.
+	IsColumn = "account_is"
 )
 
 // Columns holds all SQL columns for account fields.
@@ -33,12 +35,6 @@ var Columns = []string{
 	FieldLogin,
 	FieldPasswordHash,
 }
-
-var (
-	// IsPrimaryKey and IsColumn2 are the table columns denoting the
-	// primary key for the is relation (M2M).
-	IsPrimaryKey = []string{"account_id", "doctor_id"}
-)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -85,6 +81,6 @@ func newIsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(IsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, IsTable, IsPrimaryKey...),
+		sqlgraph.Edge(sqlgraph.O2M, false, IsTable, IsColumn),
 	)
 }

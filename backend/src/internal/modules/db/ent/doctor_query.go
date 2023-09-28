@@ -26,6 +26,7 @@ type DoctorQuery struct {
 	predicates  []predicate.Doctor
 	withTreats  *PatientQuery
 	withAccount *AccountQuery
+	withFKs     bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -98,7 +99,7 @@ func (dq *DoctorQuery) QueryAccount() *AccountQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(doctor.Table, doctor.FieldID, selector),
 			sqlgraph.To(account.Table, account.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, doctor.AccountTable, doctor.AccountPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2O, true, doctor.AccountTable, doctor.AccountColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
 		return fromU, nil
@@ -405,12 +406,19 @@ func (dq *DoctorQuery) prepareQuery(ctx context.Context) error {
 func (dq *DoctorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Doctor, error) {
 	var (
 		nodes       = []*Doctor{}
+		withFKs     = dq.withFKs
 		_spec       = dq.querySpec()
 		loadedTypes = [2]bool{
 			dq.withTreats != nil,
 			dq.withAccount != nil,
 		}
 	)
+	if dq.withAccount != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, doctor.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Doctor).scanValues(nil, columns)
 	}
@@ -437,9 +445,8 @@ func (dq *DoctorQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Docto
 		}
 	}
 	if query := dq.withAccount; query != nil {
-		if err := dq.loadAccount(ctx, query, nodes,
-			func(n *Doctor) { n.Edges.Account = []*Account{} },
-			func(n *Doctor, e *Account) { n.Edges.Account = append(n.Edges.Account, e) }); err != nil {
+		if err := dq.loadAccount(ctx, query, nodes, nil,
+			func(n *Doctor, e *Account) { n.Edges.Account = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -508,62 +515,33 @@ func (dq *DoctorQuery) loadTreats(ctx context.Context, query *PatientQuery, node
 	return nil
 }
 func (dq *DoctorQuery) loadAccount(ctx context.Context, query *AccountQuery, nodes []*Doctor, init func(*Doctor), assign func(*Doctor, *Account)) error {
-	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int]*Doctor)
-	nids := make(map[int]map[*Doctor]struct{})
-	for i, node := range nodes {
-		edgeIDs[i] = node.ID
-		byID[node.ID] = node
-		if init != nil {
-			init(node)
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Doctor)
+	for i := range nodes {
+		if nodes[i].account_is == nil {
+			continue
 		}
+		fk := *nodes[i].account_is
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	query.Where(func(s *sql.Selector) {
-		joinT := sql.Table(doctor.AccountTable)
-		s.Join(joinT).On(s.C(account.FieldID), joinT.C(doctor.AccountPrimaryKey[0]))
-		s.Where(sql.InValues(joinT.C(doctor.AccountPrimaryKey[1]), edgeIDs...))
-		columns := s.SelectedColumns()
-		s.Select(joinT.C(doctor.AccountPrimaryKey[1]))
-		s.AppendSelect(columns...)
-		s.SetDistinct(false)
-	})
-	if err := query.prepareQuery(ctx); err != nil {
-		return err
+	if len(ids) == 0 {
+		return nil
 	}
-	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
-		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
-			assign := spec.Assign
-			values := spec.ScanValues
-			spec.ScanValues = func(columns []string) ([]any, error) {
-				values, err := values(columns[1:])
-				if err != nil {
-					return nil, err
-				}
-				return append([]any{new(sql.NullInt64)}, values...), nil
-			}
-			spec.Assign = func(columns []string, values []any) error {
-				outValue := int(values[0].(*sql.NullInt64).Int64)
-				inValue := int(values[1].(*sql.NullInt64).Int64)
-				if nids[inValue] == nil {
-					nids[inValue] = map[*Doctor]struct{}{byID[outValue]: {}}
-					return assign(columns[1:], values[1:])
-				}
-				nids[inValue][byID[outValue]] = struct{}{}
-				return nil
-			}
-		})
-	})
-	neighbors, err := withInterceptors[[]*Account](ctx, query, qr, query.inters)
+	query.Where(account.IDIn(ids...))
+	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nids[n.ID]
+		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected "account" node returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "account_is" returned %v`, n.ID)
 		}
-		for kn := range nodes {
-			assign(kn, n)
+		for i := range nodes {
+			assign(nodes[i], n)
 		}
 	}
 	return nil

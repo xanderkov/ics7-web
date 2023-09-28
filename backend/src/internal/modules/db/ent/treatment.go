@@ -4,8 +4,10 @@ package ent
 
 import (
 	"fmt"
+	"hospital/internal/modules/db/ent/patient"
 	"hospital/internal/modules/db/ent/treatment"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -22,6 +24,10 @@ type Treatment struct {
 	PsychologicalTreatment string `json:"psychologicalTreatment,omitempty"`
 	// Survey holds the value of the "survey" field.
 	Survey string `json:"survey,omitempty"`
+	// PatientNumber holds the value of the "patientNumber" field.
+	PatientNumber int `json:"patientNumber,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TreatmentQuery when eager-loading is set.
 	Edges        TreatmentEdges `json:"edges"`
@@ -30,20 +36,24 @@ type Treatment struct {
 
 // TreatmentEdges holds the relations/edges for other nodes in the graph.
 type TreatmentEdges struct {
-	// Cured holds the value of the cured edge.
-	Cured []*Patient `json:"cured,omitempty"`
+	// Treat holds the value of the treat edge.
+	Treat *Patient `json:"treat,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// CuredOrErr returns the Cured value or an error if the edge
-// was not loaded in eager-loading.
-func (e TreatmentEdges) CuredOrErr() ([]*Patient, error) {
+// TreatOrErr returns the Treat value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e TreatmentEdges) TreatOrErr() (*Patient, error) {
 	if e.loadedTypes[0] {
-		return e.Cured, nil
+		if e.Treat == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: patient.Label}
+		}
+		return e.Treat, nil
 	}
-	return nil, &NotLoadedError{edge: "cured"}
+	return nil, &NotLoadedError{edge: "treat"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -51,10 +61,12 @@ func (*Treatment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case treatment.FieldID:
+		case treatment.FieldID, treatment.FieldPatientNumber:
 			values[i] = new(sql.NullInt64)
 		case treatment.FieldTablets, treatment.FieldPsychologicalTreatment, treatment.FieldSurvey:
 			values[i] = new(sql.NullString)
+		case treatment.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -94,6 +106,18 @@ func (t *Treatment) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				t.Survey = value.String
 			}
+		case treatment.FieldPatientNumber:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field patientNumber", values[i])
+			} else if value.Valid {
+				t.PatientNumber = int(value.Int64)
+			}
+		case treatment.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				t.UpdatedAt = value.Time
+			}
 		default:
 			t.selectValues.Set(columns[i], values[i])
 		}
@@ -107,9 +131,9 @@ func (t *Treatment) Value(name string) (ent.Value, error) {
 	return t.selectValues.Get(name)
 }
 
-// QueryCured queries the "cured" edge of the Treatment entity.
-func (t *Treatment) QueryCured() *PatientQuery {
-	return NewTreatmentClient(t.config).QueryCured(t)
+// QueryTreat queries the "treat" edge of the Treatment entity.
+func (t *Treatment) QueryTreat() *PatientQuery {
+	return NewTreatmentClient(t.config).QueryTreat(t)
 }
 
 // Update returns a builder for updating this Treatment.
@@ -143,6 +167,12 @@ func (t *Treatment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("survey=")
 	builder.WriteString(t.Survey)
+	builder.WriteString(", ")
+	builder.WriteString("patientNumber=")
+	builder.WriteString(fmt.Sprintf("%v", t.PatientNumber))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(t.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

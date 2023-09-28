@@ -31,11 +31,13 @@ const (
 	// TreatsInverseTable is the table name for the Patient entity.
 	// It exists in this package in order to avoid circular dependency with the "patient" package.
 	TreatsInverseTable = "patients"
-	// AccountTable is the table that holds the account relation/edge. The primary key declared below.
-	AccountTable = "account_is"
+	// AccountTable is the table that holds the account relation/edge.
+	AccountTable = "doctors"
 	// AccountInverseTable is the table name for the Account entity.
 	// It exists in this package in order to avoid circular dependency with the "account" package.
 	AccountInverseTable = "accounts"
+	// AccountColumn is the table column denoting the account relation/edge.
+	AccountColumn = "account_is"
 )
 
 // Columns holds all SQL columns for doctor fields.
@@ -47,19 +49,27 @@ var Columns = []string{
 	FieldRole,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "doctors"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"account_is",
+}
+
 var (
 	// TreatsPrimaryKey and TreatsColumn2 are the table columns denoting the
 	// primary key for the treats relation (M2M).
 	TreatsPrimaryKey = []string{"doctor_id", "patient_id"}
-	// AccountPrimaryKey and AccountColumn2 are the table columns denoting the
-	// primary key for the account relation (M2M).
-	AccountPrimaryKey = []string{"account_id", "doctor_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -108,17 +118,10 @@ func ByTreats(term sql.OrderTerm, terms ...sql.OrderTerm) Order {
 	}
 }
 
-// ByAccountCount orders the results by account count.
-func ByAccountCount(opts ...sql.OrderTermOption) Order {
+// ByAccountField orders the results by account field.
+func ByAccountField(field string, opts ...sql.OrderTermOption) Order {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newAccountStep(), opts...)
-	}
-}
-
-// ByAccount orders the results by account terms.
-func ByAccount(term sql.OrderTerm, terms ...sql.OrderTerm) Order {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newAccountStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newAccountStep(), sql.OrderByField(field, opts...))
 	}
 }
 func newTreatsStep() *sqlgraph.Step {
@@ -132,6 +135,6 @@ func newAccountStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AccountInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, AccountTable, AccountPrimaryKey...),
+		sqlgraph.Edge(sqlgraph.M2O, true, AccountTable, AccountColumn),
 	)
 }

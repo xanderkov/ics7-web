@@ -60,19 +60,23 @@ func (dc *DoctorCreate) AddTreats(p ...*Patient) *DoctorCreate {
 	return dc.AddTreatIDs(ids...)
 }
 
-// AddAccountIDs adds the "account" edge to the Account entity by IDs.
-func (dc *DoctorCreate) AddAccountIDs(ids ...int) *DoctorCreate {
-	dc.mutation.AddAccountIDs(ids...)
+// SetAccountID sets the "account" edge to the Account entity by ID.
+func (dc *DoctorCreate) SetAccountID(id int) *DoctorCreate {
+	dc.mutation.SetAccountID(id)
 	return dc
 }
 
-// AddAccount adds the "account" edges to the Account entity.
-func (dc *DoctorCreate) AddAccount(a ...*Account) *DoctorCreate {
-	ids := make([]int, len(a))
-	for i := range a {
-		ids[i] = a[i].ID
+// SetNillableAccountID sets the "account" edge to the Account entity by ID if the given value is not nil.
+func (dc *DoctorCreate) SetNillableAccountID(id *int) *DoctorCreate {
+	if id != nil {
+		dc = dc.SetAccountID(*id)
 	}
-	return dc.AddAccountIDs(ids...)
+	return dc
+}
+
+// SetAccount sets the "account" edge to the Account entity.
+func (dc *DoctorCreate) SetAccount(a *Account) *DoctorCreate {
+	return dc.SetAccountID(a.ID)
 }
 
 // Mutation returns the DoctorMutation object of the builder.
@@ -181,10 +185,10 @@ func (dc *DoctorCreate) createSpec() (*Doctor, *sqlgraph.CreateSpec) {
 	}
 	if nodes := dc.mutation.AccountIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   doctor.AccountTable,
-			Columns: doctor.AccountPrimaryKey,
+			Columns: []string{doctor.AccountColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(account.FieldID, field.TypeInt),
@@ -193,6 +197,7 @@ func (dc *DoctorCreate) createSpec() (*Doctor, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_node.account_is = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

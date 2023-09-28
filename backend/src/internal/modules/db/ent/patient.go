@@ -7,7 +7,6 @@ import (
 	"hospital/internal/modules/db/ent/disease"
 	"hospital/internal/modules/db/ent/patient"
 	"hospital/internal/modules/db/ent/room"
-	"hospital/internal/modules/db/ent/treatment"
 	"strings"
 
 	"entgo.io/ent"
@@ -35,10 +34,9 @@ type Patient struct {
 	DegreeOfDanger int `json:"degreeOfDanger,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PatientQuery when eager-loading is set.
-	Edges           PatientEdges `json:"edges"`
-	disease_has     *int
-	treatment_cured *int
-	selectValues    sql.SelectValues
+	Edges        PatientEdges `json:"edges"`
+	disease_has  *int
+	selectValues sql.SelectValues
 }
 
 // PatientEdges holds the relations/edges for other nodes in the graph.
@@ -50,7 +48,7 @@ type PatientEdges struct {
 	// Ills holds the value of the ills edge.
 	Ills *Disease `json:"ills,omitempty"`
 	// Treats holds the value of the treats edge.
-	Treats *Treatment `json:"treats,omitempty"`
+	Treats []*Treatment `json:"treats,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [4]bool
@@ -92,13 +90,9 @@ func (e PatientEdges) IllsOrErr() (*Disease, error) {
 }
 
 // TreatsOrErr returns the Treats value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e PatientEdges) TreatsOrErr() (*Treatment, error) {
+// was not loaded in eager-loading.
+func (e PatientEdges) TreatsOrErr() ([]*Treatment, error) {
 	if e.loadedTypes[3] {
-		if e.Treats == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: treatment.Label}
-		}
 		return e.Treats, nil
 	}
 	return nil, &NotLoadedError{edge: "treats"}
@@ -116,8 +110,6 @@ func (*Patient) scanValues(columns []string) ([]any, error) {
 		case patient.FieldSurname, patient.FieldName, patient.FieldPatronymic:
 			values[i] = new(sql.NullString)
 		case patient.ForeignKeys[0]: // disease_has
-			values[i] = new(sql.NullInt64)
-		case patient.ForeignKeys[1]: // treatment_cured
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -188,13 +180,6 @@ func (pa *Patient) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pa.disease_has = new(int)
 				*pa.disease_has = int(value.Int64)
-			}
-		case patient.ForeignKeys[1]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field treatment_cured", value)
-			} else if value.Valid {
-				pa.treatment_cured = new(int)
-				*pa.treatment_cured = int(value.Int64)
 			}
 		default:
 			pa.selectValues.Set(columns[i], values[i])

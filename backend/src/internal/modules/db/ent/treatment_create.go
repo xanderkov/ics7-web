@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"hospital/internal/modules/db/ent/patient"
 	"hospital/internal/modules/db/ent/treatment"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -38,19 +39,35 @@ func (tc *TreatmentCreate) SetSurvey(s string) *TreatmentCreate {
 	return tc
 }
 
-// AddCuredIDs adds the "cured" edge to the Patient entity by IDs.
-func (tc *TreatmentCreate) AddCuredIDs(ids ...int) *TreatmentCreate {
-	tc.mutation.AddCuredIDs(ids...)
+// SetPatientNumber sets the "patientNumber" field.
+func (tc *TreatmentCreate) SetPatientNumber(i int) *TreatmentCreate {
+	tc.mutation.SetPatientNumber(i)
 	return tc
 }
 
-// AddCured adds the "cured" edges to the Patient entity.
-func (tc *TreatmentCreate) AddCured(p ...*Patient) *TreatmentCreate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
+// SetUpdatedAt sets the "updated_at" field.
+func (tc *TreatmentCreate) SetUpdatedAt(t time.Time) *TreatmentCreate {
+	tc.mutation.SetUpdatedAt(t)
+	return tc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (tc *TreatmentCreate) SetNillableUpdatedAt(t *time.Time) *TreatmentCreate {
+	if t != nil {
+		tc.SetUpdatedAt(*t)
 	}
-	return tc.AddCuredIDs(ids...)
+	return tc
+}
+
+// SetTreatID sets the "treat" edge to the Patient entity by ID.
+func (tc *TreatmentCreate) SetTreatID(id int) *TreatmentCreate {
+	tc.mutation.SetTreatID(id)
+	return tc
+}
+
+// SetTreat sets the "treat" edge to the Patient entity.
+func (tc *TreatmentCreate) SetTreat(p *Patient) *TreatmentCreate {
+	return tc.SetTreatID(p.ID)
 }
 
 // Mutation returns the TreatmentMutation object of the builder.
@@ -60,6 +77,7 @@ func (tc *TreatmentCreate) Mutation() *TreatmentMutation {
 
 // Save creates the Treatment in the database.
 func (tc *TreatmentCreate) Save(ctx context.Context) (*Treatment, error) {
+	tc.defaults()
 	return withHooks[*Treatment, TreatmentMutation](ctx, tc.sqlSave, tc.mutation, tc.hooks)
 }
 
@@ -85,6 +103,14 @@ func (tc *TreatmentCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (tc *TreatmentCreate) defaults() {
+	if _, ok := tc.mutation.UpdatedAt(); !ok {
+		v := treatment.DefaultUpdatedAt()
+		tc.mutation.SetUpdatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (tc *TreatmentCreate) check() error {
 	if _, ok := tc.mutation.Tablets(); !ok {
@@ -95,6 +121,15 @@ func (tc *TreatmentCreate) check() error {
 	}
 	if _, ok := tc.mutation.Survey(); !ok {
 		return &ValidationError{Name: "survey", err: errors.New(`ent: missing required field "Treatment.survey"`)}
+	}
+	if _, ok := tc.mutation.PatientNumber(); !ok {
+		return &ValidationError{Name: "patientNumber", err: errors.New(`ent: missing required field "Treatment.patientNumber"`)}
+	}
+	if _, ok := tc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Treatment.updated_at"`)}
+	}
+	if _, ok := tc.mutation.TreatID(); !ok {
+		return &ValidationError{Name: "treat", err: errors.New(`ent: missing required edge "Treatment.treat"`)}
 	}
 	return nil
 }
@@ -134,12 +169,16 @@ func (tc *TreatmentCreate) createSpec() (*Treatment, *sqlgraph.CreateSpec) {
 		_spec.SetField(treatment.FieldSurvey, field.TypeString, value)
 		_node.Survey = value
 	}
-	if nodes := tc.mutation.CuredIDs(); len(nodes) > 0 {
+	if value, ok := tc.mutation.UpdatedAt(); ok {
+		_spec.SetField(treatment.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
+	}
+	if nodes := tc.mutation.TreatIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   treatment.CuredTable,
-			Columns: []string{treatment.CuredColumn},
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   treatment.TreatTable,
+			Columns: []string{treatment.TreatColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(patient.FieldID, field.TypeInt),
@@ -148,6 +187,7 @@ func (tc *TreatmentCreate) createSpec() (*Treatment, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_node.PatientNumber = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -167,6 +207,7 @@ func (tcb *TreatmentCreateBulk) Save(ctx context.Context) ([]*Treatment, error) 
 	for i := range tcb.builders {
 		func(i int, root context.Context) {
 			builder := tcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*TreatmentMutation)
 				if !ok {

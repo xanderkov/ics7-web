@@ -199,7 +199,7 @@ func HasIs() predicate.Account {
 	return predicate.Account(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, IsTable, IsPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, false, IsTable, IsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

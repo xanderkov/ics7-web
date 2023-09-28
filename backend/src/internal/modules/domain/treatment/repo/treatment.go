@@ -40,6 +40,8 @@ func (r *TreatmentRepo) Create(ctx context.Context, dtm *dto.CreateTreatment) (*
 		SetTablets(dtm.Tablets).
 		SetSurvey(dtm.Survey).
 		SetPsychologicalTreatment(dtm.PsychologicalTreatment).
+		SetPatientNumber(dtm.PatientNumber).
+		SetUpdatedAt(dtm.UpdateAt).
 		Save(ctx)
 
 	if err != nil {
@@ -54,6 +56,8 @@ func (r *TreatmentRepo) Update(ctx context.Context, id int, dtm *dto.UpdateTreat
 		SetTablets(dtm.Tablets).
 		SetSurvey(dtm.Survey).
 		SetPsychologicalTreatment(dtm.PsychologicalTreatment).
+		SetPatientNumber(dtm.PatientNumber).
+		SetUpdatedAt(dtm.UpdateAt).
 		Save(ctx)
 	if err != nil {
 		return nil, db.WrapError(err)
@@ -89,6 +93,8 @@ func ToTreatmentDTO(model *ent.Treatment) *dto.Treatment {
 		Tablets:                model.Tablets,
 		PsychologicalTreatment: model.PsychologicalTreatment,
 		Survey:                 model.Survey,
+		PatientNumber:          model.PatientNumber,
+		UpdateAt:               model.UpdatedAt,
 	}
 }
 

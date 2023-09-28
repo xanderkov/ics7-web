@@ -110,23 +110,19 @@ func (pc *PatientCreate) SetIlls(d *Disease) *PatientCreate {
 	return pc.SetIllsID(d.ID)
 }
 
-// SetTreatsID sets the "treats" edge to the Treatment entity by ID.
-func (pc *PatientCreate) SetTreatsID(id int) *PatientCreate {
-	pc.mutation.SetTreatsID(id)
+// AddTreatIDs adds the "treats" edge to the Treatment entity by IDs.
+func (pc *PatientCreate) AddTreatIDs(ids ...int) *PatientCreate {
+	pc.mutation.AddTreatIDs(ids...)
 	return pc
 }
 
-// SetNillableTreatsID sets the "treats" edge to the Treatment entity by ID if the given value is not nil.
-func (pc *PatientCreate) SetNillableTreatsID(id *int) *PatientCreate {
-	if id != nil {
-		pc = pc.SetTreatsID(*id)
+// AddTreats adds the "treats" edges to the Treatment entity.
+func (pc *PatientCreate) AddTreats(t ...*Treatment) *PatientCreate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
 	}
-	return pc
-}
-
-// SetTreats sets the "treats" edge to the Treatment entity.
-func (pc *PatientCreate) SetTreats(t *Treatment) *PatientCreate {
-	return pc.SetTreatsID(t.ID)
+	return pc.AddTreatIDs(ids...)
 }
 
 // Mutation returns the PatientMutation object of the builder.
@@ -289,8 +285,8 @@ func (pc *PatientCreate) createSpec() (*Patient, *sqlgraph.CreateSpec) {
 	}
 	if nodes := pc.mutation.TreatsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
 			Table:   patient.TreatsTable,
 			Columns: []string{patient.TreatsColumn},
 			Bidi:    false,
@@ -301,7 +297,6 @@ func (pc *PatientCreate) createSpec() (*Patient, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.treatment_cured = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

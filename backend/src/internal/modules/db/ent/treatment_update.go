@@ -9,6 +9,7 @@ import (
 	"hospital/internal/modules/db/ent/patient"
 	"hospital/internal/modules/db/ent/predicate"
 	"hospital/internal/modules/db/ent/treatment"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -46,19 +47,27 @@ func (tu *TreatmentUpdate) SetSurvey(s string) *TreatmentUpdate {
 	return tu
 }
 
-// AddCuredIDs adds the "cured" edge to the Patient entity by IDs.
-func (tu *TreatmentUpdate) AddCuredIDs(ids ...int) *TreatmentUpdate {
-	tu.mutation.AddCuredIDs(ids...)
+// SetPatientNumber sets the "patientNumber" field.
+func (tu *TreatmentUpdate) SetPatientNumber(i int) *TreatmentUpdate {
+	tu.mutation.SetPatientNumber(i)
 	return tu
 }
 
-// AddCured adds the "cured" edges to the Patient entity.
-func (tu *TreatmentUpdate) AddCured(p ...*Patient) *TreatmentUpdate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return tu.AddCuredIDs(ids...)
+// SetUpdatedAt sets the "updated_at" field.
+func (tu *TreatmentUpdate) SetUpdatedAt(t time.Time) *TreatmentUpdate {
+	tu.mutation.SetUpdatedAt(t)
+	return tu
+}
+
+// SetTreatID sets the "treat" edge to the Patient entity by ID.
+func (tu *TreatmentUpdate) SetTreatID(id int) *TreatmentUpdate {
+	tu.mutation.SetTreatID(id)
+	return tu
+}
+
+// SetTreat sets the "treat" edge to the Patient entity.
+func (tu *TreatmentUpdate) SetTreat(p *Patient) *TreatmentUpdate {
+	return tu.SetTreatID(p.ID)
 }
 
 // Mutation returns the TreatmentMutation object of the builder.
@@ -66,29 +75,15 @@ func (tu *TreatmentUpdate) Mutation() *TreatmentMutation {
 	return tu.mutation
 }
 
-// ClearCured clears all "cured" edges to the Patient entity.
-func (tu *TreatmentUpdate) ClearCured() *TreatmentUpdate {
-	tu.mutation.ClearCured()
+// ClearTreat clears the "treat" edge to the Patient entity.
+func (tu *TreatmentUpdate) ClearTreat() *TreatmentUpdate {
+	tu.mutation.ClearTreat()
 	return tu
-}
-
-// RemoveCuredIDs removes the "cured" edge to Patient entities by IDs.
-func (tu *TreatmentUpdate) RemoveCuredIDs(ids ...int) *TreatmentUpdate {
-	tu.mutation.RemoveCuredIDs(ids...)
-	return tu
-}
-
-// RemoveCured removes "cured" edges to Patient entities.
-func (tu *TreatmentUpdate) RemoveCured(p ...*Patient) *TreatmentUpdate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return tu.RemoveCuredIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tu *TreatmentUpdate) Save(ctx context.Context) (int, error) {
+	tu.defaults()
 	return withHooks[int, TreatmentMutation](ctx, tu.sqlSave, tu.mutation, tu.hooks)
 }
 
@@ -114,7 +109,26 @@ func (tu *TreatmentUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (tu *TreatmentUpdate) defaults() {
+	if _, ok := tu.mutation.UpdatedAt(); !ok {
+		v := treatment.UpdateDefaultUpdatedAt()
+		tu.mutation.SetUpdatedAt(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (tu *TreatmentUpdate) check() error {
+	if _, ok := tu.mutation.TreatID(); tu.mutation.TreatCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Treatment.treat"`)
+	}
+	return nil
+}
+
 func (tu *TreatmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := tu.check(); err != nil {
+		return n, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(treatment.Table, treatment.Columns, sqlgraph.NewFieldSpec(treatment.FieldID, field.TypeInt))
 	if ps := tu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -132,12 +146,15 @@ func (tu *TreatmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := tu.mutation.Survey(); ok {
 		_spec.SetField(treatment.FieldSurvey, field.TypeString, value)
 	}
-	if tu.mutation.CuredCleared() {
+	if value, ok := tu.mutation.UpdatedAt(); ok {
+		_spec.SetField(treatment.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if tu.mutation.TreatCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   treatment.CuredTable,
-			Columns: []string{treatment.CuredColumn},
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   treatment.TreatTable,
+			Columns: []string{treatment.TreatColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(patient.FieldID, field.TypeInt),
@@ -145,28 +162,12 @@ func (tu *TreatmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tu.mutation.RemovedCuredIDs(); len(nodes) > 0 && !tu.mutation.CuredCleared() {
+	if nodes := tu.mutation.TreatIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   treatment.CuredTable,
-			Columns: []string{treatment.CuredColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(patient.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := tu.mutation.CuredIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   treatment.CuredTable,
-			Columns: []string{treatment.CuredColumn},
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   treatment.TreatTable,
+			Columns: []string{treatment.TreatColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(patient.FieldID, field.TypeInt),
@@ -215,19 +216,27 @@ func (tuo *TreatmentUpdateOne) SetSurvey(s string) *TreatmentUpdateOne {
 	return tuo
 }
 
-// AddCuredIDs adds the "cured" edge to the Patient entity by IDs.
-func (tuo *TreatmentUpdateOne) AddCuredIDs(ids ...int) *TreatmentUpdateOne {
-	tuo.mutation.AddCuredIDs(ids...)
+// SetPatientNumber sets the "patientNumber" field.
+func (tuo *TreatmentUpdateOne) SetPatientNumber(i int) *TreatmentUpdateOne {
+	tuo.mutation.SetPatientNumber(i)
 	return tuo
 }
 
-// AddCured adds the "cured" edges to the Patient entity.
-func (tuo *TreatmentUpdateOne) AddCured(p ...*Patient) *TreatmentUpdateOne {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return tuo.AddCuredIDs(ids...)
+// SetUpdatedAt sets the "updated_at" field.
+func (tuo *TreatmentUpdateOne) SetUpdatedAt(t time.Time) *TreatmentUpdateOne {
+	tuo.mutation.SetUpdatedAt(t)
+	return tuo
+}
+
+// SetTreatID sets the "treat" edge to the Patient entity by ID.
+func (tuo *TreatmentUpdateOne) SetTreatID(id int) *TreatmentUpdateOne {
+	tuo.mutation.SetTreatID(id)
+	return tuo
+}
+
+// SetTreat sets the "treat" edge to the Patient entity.
+func (tuo *TreatmentUpdateOne) SetTreat(p *Patient) *TreatmentUpdateOne {
+	return tuo.SetTreatID(p.ID)
 }
 
 // Mutation returns the TreatmentMutation object of the builder.
@@ -235,25 +244,10 @@ func (tuo *TreatmentUpdateOne) Mutation() *TreatmentMutation {
 	return tuo.mutation
 }
 
-// ClearCured clears all "cured" edges to the Patient entity.
-func (tuo *TreatmentUpdateOne) ClearCured() *TreatmentUpdateOne {
-	tuo.mutation.ClearCured()
+// ClearTreat clears the "treat" edge to the Patient entity.
+func (tuo *TreatmentUpdateOne) ClearTreat() *TreatmentUpdateOne {
+	tuo.mutation.ClearTreat()
 	return tuo
-}
-
-// RemoveCuredIDs removes the "cured" edge to Patient entities by IDs.
-func (tuo *TreatmentUpdateOne) RemoveCuredIDs(ids ...int) *TreatmentUpdateOne {
-	tuo.mutation.RemoveCuredIDs(ids...)
-	return tuo
-}
-
-// RemoveCured removes "cured" edges to Patient entities.
-func (tuo *TreatmentUpdateOne) RemoveCured(p ...*Patient) *TreatmentUpdateOne {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return tuo.RemoveCuredIDs(ids...)
 }
 
 // Where appends a list predicates to the TreatmentUpdate builder.
@@ -271,6 +265,7 @@ func (tuo *TreatmentUpdateOne) Select(field string, fields ...string) *Treatment
 
 // Save executes the query and returns the updated Treatment entity.
 func (tuo *TreatmentUpdateOne) Save(ctx context.Context) (*Treatment, error) {
+	tuo.defaults()
 	return withHooks[*Treatment, TreatmentMutation](ctx, tuo.sqlSave, tuo.mutation, tuo.hooks)
 }
 
@@ -296,7 +291,26 @@ func (tuo *TreatmentUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (tuo *TreatmentUpdateOne) defaults() {
+	if _, ok := tuo.mutation.UpdatedAt(); !ok {
+		v := treatment.UpdateDefaultUpdatedAt()
+		tuo.mutation.SetUpdatedAt(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (tuo *TreatmentUpdateOne) check() error {
+	if _, ok := tuo.mutation.TreatID(); tuo.mutation.TreatCleared() && !ok {
+		return errors.New(`ent: clearing a required unique edge "Treatment.treat"`)
+	}
+	return nil
+}
+
 func (tuo *TreatmentUpdateOne) sqlSave(ctx context.Context) (_node *Treatment, err error) {
+	if err := tuo.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(treatment.Table, treatment.Columns, sqlgraph.NewFieldSpec(treatment.FieldID, field.TypeInt))
 	id, ok := tuo.mutation.ID()
 	if !ok {
@@ -331,12 +345,15 @@ func (tuo *TreatmentUpdateOne) sqlSave(ctx context.Context) (_node *Treatment, e
 	if value, ok := tuo.mutation.Survey(); ok {
 		_spec.SetField(treatment.FieldSurvey, field.TypeString, value)
 	}
-	if tuo.mutation.CuredCleared() {
+	if value, ok := tuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(treatment.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if tuo.mutation.TreatCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   treatment.CuredTable,
-			Columns: []string{treatment.CuredColumn},
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   treatment.TreatTable,
+			Columns: []string{treatment.TreatColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(patient.FieldID, field.TypeInt),
@@ -344,28 +361,12 @@ func (tuo *TreatmentUpdateOne) sqlSave(ctx context.Context) (_node *Treatment, e
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := tuo.mutation.RemovedCuredIDs(); len(nodes) > 0 && !tuo.mutation.CuredCleared() {
+	if nodes := tuo.mutation.TreatIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   treatment.CuredTable,
-			Columns: []string{treatment.CuredColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(patient.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := tuo.mutation.CuredIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   treatment.CuredTable,
-			Columns: []string{treatment.CuredColumn},
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   treatment.TreatTable,
+			Columns: []string{treatment.TreatColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(patient.FieldID, field.TypeInt),

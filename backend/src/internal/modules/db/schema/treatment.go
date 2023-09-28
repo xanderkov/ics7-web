@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"time"
 )
 
 // Treatment holds the schema definition for the Treatment entity.
@@ -17,12 +18,20 @@ func (Treatment) Fields() []ent.Field {
 		field.String("tablets"),
 		field.String("psychologicalTreatment"),
 		field.String("survey"),
+		field.Int("patientNumber"),
+		field.Time("updated_at").
+			Default(time.Now).
+			UpdateDefault(time.Now),
 	}
 }
 
 // Edges of the Treatment.
 func (Treatment) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("cured", Patient.Type),
+		edge.From("treat", Patient.Type).
+			Ref("treats").
+			Field("patientNumber").
+			Unique().
+			Required(),
 	}
 }
