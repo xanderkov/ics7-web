@@ -22,6 +22,7 @@ require (
 
 require (
 	ariga.io/atlas v0.10.0 // indirect
+	ariga.io/entviz v0.0.0-20230419175438-29569ec22220 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect

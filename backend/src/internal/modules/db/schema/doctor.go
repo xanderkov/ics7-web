@@ -27,6 +27,7 @@ func (Doctor) Edges() []ent.Edge {
 			edge.Table("doctor_patient"), edge.Columns("doctor_id", "patient_id"),
 		),
 		edge.From("account", Account.Type).
-			Ref("is"),
+			Ref("is").
+			Unique(),
 	}
 }
