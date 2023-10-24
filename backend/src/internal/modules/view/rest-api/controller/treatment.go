@@ -7,6 +7,7 @@ import (
 	"hospital/internal/modules/view/rest-api/model"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 // ShowTreatment godoc
@@ -88,7 +89,7 @@ func (c *Controller) UpdateTreatment(ctx *gin.Context) {
 		Tablets:                updateTreatment.Tablets,
 		Survey:                 updateTreatment.Survey,
 		PatientNumber:          updateTreatment.PatientNumber,
-		UpdateAt:               updateTreatment.UpdatedAt,
+		UpdateAt:               time.Now(),
 	}
 	treatmentUpdated, err := c.treatmentService.Update(ctx, aid, treatment)
 	if err != nil {
@@ -149,7 +150,7 @@ func (c *Controller) AddTreatment(ctx *gin.Context) {
 		Tablets:                addTreatment.Tablets,
 		Survey:                 addTreatment.Survey,
 		PatientNumber:          addTreatment.PatientNumber,
-		UpdateAt:               addTreatment.UpdatedAt,
+		UpdateAt:               time.Now(),
 	}
 	treatment, err := c.treatmentService.Create(ctx, newTreatment)
 	if err != nil {

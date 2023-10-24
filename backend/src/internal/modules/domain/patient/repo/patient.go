@@ -60,6 +60,7 @@ func (r *PatientRepo) Update(ctx context.Context, id int, dtm *dto.UpdatePatient
 		SetDegreeOfDanger(dtm.DegreeOfDanger).
 		SetSurname(dtm.Surname).
 		SetWeight(dtm.Weight).
+		SetRoomNumber(dtm.RoomNumber).
 		Save(ctx)
 	if err != nil {
 		return nil, db.WrapError(err)
@@ -98,6 +99,7 @@ func ToPatientDTO(model *ent.Patient) *dto.Patient {
 		Height:         model.Height,
 		DegreeOfDanger: model.DegreeOfDanger,
 		Weight:         model.Weight,
+		RoomNumber:     model.RoomNumber,
 	}
 }
 

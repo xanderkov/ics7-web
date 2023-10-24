@@ -2,7 +2,6 @@ package rest_api
 
 import (
 	"fmt"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -11,6 +10,8 @@ import (
 	"hospital/internal/modules/config"
 	"hospital/internal/modules/view/rest-api/controller"
 )
+
+//go:generate swag init -g internal/modules/view/rest-api/api.go
 
 // @securityDefinitions.basic  BasicAuth
 
@@ -35,8 +36,18 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 	address := fmt.Sprintf("0.0.0.0:%d", cfg.ApiPort)
 	logger.Info("Server started on address: " + address)
 	r := gin.Default()
-	r.Use(cors.Default())
+	r.Use(CORSMiddleware())
 	c := controller
+
+	//store := cookie.NewStore([]byte("secret"))
+	//r.Use(sessions.Sessions("mysession", store))
+	//r.Use(csrf.Middleware(csrf.Options{
+	//	Secret: "secret123",
+	//	ErrorFunc: func(c *gin.Context) {
+	//		c.String(400, "CSRF token mismatch")
+	//		c.Abort()
+	//	},
+	//}))
 
 	v1 := r.Group("/api/v1")
 	{
@@ -101,10 +112,12 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 	docs.SwaggerInfo.Version = "1.0"
 	docs.SwaggerInfo.Host = "localhost:80"
 	docs.SwaggerInfo.BasePath = "/api/v1"
+	go func() {
+		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		err := r.Run(address)
+		if err != nil {
+			return
+		}
+	}()
 
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	err := r.Run(address)
-	if err != nil {
-		return
-	}
 }

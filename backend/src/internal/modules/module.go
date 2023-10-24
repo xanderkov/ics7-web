@@ -10,7 +10,6 @@ import (
 	"hospital/internal/modules/domain"
 	"hospital/internal/modules/logger"
 	rest_api "hospital/internal/modules/view/rest-api"
-	"hospital/internal/modules/view/telegram"
 )
 
 var (
@@ -22,7 +21,7 @@ var (
 
 		domain.Module,
 		rest_api.Module,
-		telegram.Module,
+		//telegram.Module,
 
 		fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
 			return &fxevent.ZapLogger{Logger: log}
@@ -37,6 +36,6 @@ var (
 
 		domain.Invokables,
 		rest_api.Invokables,
-		telegram.Invokables,
+		//telegram.Invokables,
 	)
 )
