@@ -45,6 +45,12 @@ func (dc *DoctorCreate) SetRole(s string) *DoctorCreate {
 	return dc
 }
 
+// SetPhotoPath sets the "photoPath" field.
+func (dc *DoctorCreate) SetPhotoPath(s string) *DoctorCreate {
+	dc.mutation.SetPhotoPath(s)
+	return dc
+}
+
 // AddTreatIDs adds the "treats" edge to the Patient entity by IDs.
 func (dc *DoctorCreate) AddTreatIDs(ids ...int) *DoctorCreate {
 	dc.mutation.AddTreatIDs(ids...)
@@ -125,6 +131,9 @@ func (dc *DoctorCreate) check() error {
 	if _, ok := dc.mutation.Role(); !ok {
 		return &ValidationError{Name: "role", err: errors.New(`ent: missing required field "Doctor.role"`)}
 	}
+	if _, ok := dc.mutation.PhotoPath(); !ok {
+		return &ValidationError{Name: "photoPath", err: errors.New(`ent: missing required field "Doctor.photoPath"`)}
+	}
 	return nil
 }
 
@@ -166,6 +175,10 @@ func (dc *DoctorCreate) createSpec() (*Doctor, *sqlgraph.CreateSpec) {
 	if value, ok := dc.mutation.Role(); ok {
 		_spec.SetField(doctor.FieldRole, field.TypeString, value)
 		_node.Role = value
+	}
+	if value, ok := dc.mutation.PhotoPath(); ok {
+		_spec.SetField(doctor.FieldPhotoPath, field.TypeString, value)
+		_node.PhotoPath = value
 	}
 	if nodes := dc.mutation.TreatsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

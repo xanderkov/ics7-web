@@ -40,6 +40,7 @@ var (
 		{Name: "surname", Type: field.TypeString},
 		{Name: "speciality", Type: field.TypeString},
 		{Name: "role", Type: field.TypeString},
+		{Name: "photo_path", Type: field.TypeString},
 		{Name: "account_is", Type: field.TypeInt, Nullable: true},
 	}
 	// DoctorsTable holds the schema information for the "doctors" table.
@@ -50,7 +51,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "doctors_accounts_is",
-				Columns:    []*schema.Column{DoctorsColumns[5]},
+				Columns:    []*schema.Column{DoctorsColumns[6]},
 				RefColumns: []*schema.Column{AccountsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

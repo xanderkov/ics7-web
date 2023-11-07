@@ -105,6 +105,12 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 			account.PATCH(":id", c.UpdateAccount)
 			account.DELETE(":id", c.DeleteAccount)
 		}
+
+		doctorsPatients := v1.Group("/doctorsPatients")
+		{
+			doctorsPatients.GET(":id", c.ShowDoctorsPatients)
+			doctorsPatients.POST("", c.AddDoctorsPatients)
+		}
 	}
 
 	docs.SwaggerInfo.Title = "Psycho Admin API"

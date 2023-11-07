@@ -25,6 +25,8 @@ type Doctor struct {
 	Speciality string `json:"speciality,omitempty"`
 	// Role holds the value of the "role" field.
 	Role string `json:"role,omitempty"`
+	// PhotoPath holds the value of the "photoPath" field.
+	PhotoPath string `json:"photoPath,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the DoctorQuery when eager-loading is set.
 	Edges        DoctorEdges `json:"edges"`
@@ -72,7 +74,7 @@ func (*Doctor) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case doctor.FieldID:
 			values[i] = new(sql.NullInt64)
-		case doctor.FieldTokenId, doctor.FieldSurname, doctor.FieldSpeciality, doctor.FieldRole:
+		case doctor.FieldTokenId, doctor.FieldSurname, doctor.FieldSpeciality, doctor.FieldRole, doctor.FieldPhotoPath:
 			values[i] = new(sql.NullString)
 		case doctor.ForeignKeys[0]: // account_is
 			values[i] = new(sql.NullInt64)
@@ -120,6 +122,12 @@ func (d *Doctor) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field role", values[i])
 			} else if value.Valid {
 				d.Role = value.String
+			}
+		case doctor.FieldPhotoPath:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field photoPath", values[i])
+			} else if value.Valid {
+				d.PhotoPath = value.String
 			}
 		case doctor.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -185,6 +193,9 @@ func (d *Doctor) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("role=")
 	builder.WriteString(d.Role)
+	builder.WriteString(", ")
+	builder.WriteString("photoPath=")
+	builder.WriteString(d.PhotoPath)
 	builder.WriteByte(')')
 	return builder.String()
 }

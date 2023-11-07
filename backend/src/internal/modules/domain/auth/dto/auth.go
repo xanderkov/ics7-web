@@ -14,6 +14,7 @@ type NewDoctor struct {
 	Surname    string
 	Speciality string
 	Role       string
+	PhotoPath  string
 }
 
 // NewAccount данные нового пользователя

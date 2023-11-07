@@ -81,6 +81,7 @@ func (c *Controller) AddDoctor(ctx *gin.Context) {
 		Surname:    addAccount.Surname,
 		Speciality: addAccount.Speciality,
 		Role:       addAccount.Role,
+		PhotoPath:  addAccount.PhotoPath,
 	}
 
 	doctor, err := c.authService.SignUp(ctx, newDoctor)
@@ -122,6 +123,7 @@ func (c *Controller) UpdateDoctor(ctx *gin.Context) {
 		Surname:    updateDoctor.Surname,
 		Speciality: updateDoctor.Speciality,
 		Role:       updateDoctor.Role,
+		PhotoPath:  updateDoctor.PhotoPath,
 	}
 	doctorUpdated, err := c.doctorService.Update(ctx, aid, doctor)
 	if err != nil {

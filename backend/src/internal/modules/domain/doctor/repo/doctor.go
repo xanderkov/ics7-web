@@ -6,6 +6,8 @@ import (
 	"hospital/internal/modules/db/ent"
 	"hospital/internal/modules/db/ent/doctor"
 	"hospital/internal/modules/domain/doctor/dto"
+	p_dto "hospital/internal/modules/domain/patient/dto"
+	"hospital/internal/modules/domain/patient/repo"
 )
 
 type DoctorRepo struct {
@@ -36,12 +38,31 @@ func (r *DoctorRepo) GetByTokenId(ctx context.Context, token string) (*dto.Docto
 	return ToDoctorDTO(Doctor), nil
 }
 
+func (r *DoctorRepo) GetPatientsById(ctx context.Context, id int) (p_dto.Patients, error) {
+	Doctor, err := r.client.Doctor.Get(ctx, id)
+	Patients, err := Doctor.QueryTreats().All(ctx)
+
+	if err != nil {
+		return nil, db.WrapError(err)
+	}
+	return repo.ToPatientDTOs(Patients), nil
+}
+
+func (r *DoctorRepo) AddPatientsById(ctx context.Context, idDoc int, idP int) (*p_dto.Patient, error) {
+	Patient, err := r.client.Patient.Get(ctx, idP)
+	_, err = r.client.Doctor.UpdateOneID(idDoc).AddTreats(Patient).Save(ctx)
+
+	if err != nil {
+		return nil, db.WrapError(err)
+	}
+	return repo.ToPatientDTO(Patient), nil
+}
+
 func (r *DoctorRepo) List(ctx context.Context) (dto.Doctors, error) {
 	Doctors, err := r.client.Doctor.Query().All(ctx)
 	if err != nil {
 		return nil, db.WrapError(err)
 	}
-
 	return ToDoctorDTOs(Doctors), nil
 }
 
@@ -51,6 +72,7 @@ func (r *DoctorRepo) Create(ctx context.Context, dtm *dto.CreateDoctor) (*dto.Do
 		SetTokenId(dtm.TokenId).
 		SetRole(dtm.Role).
 		SetSpeciality(dtm.Speciality).
+		SetPhotoPath(dtm.PhotoPath).
 		Save(ctx)
 	if err != nil {
 		return nil, db.WrapError(err)
@@ -65,6 +87,7 @@ func (r *DoctorRepo) Update(ctx context.Context, id int, dtm *dto.UpdateDoctor) 
 		SetSurname(dtm.Surname).
 		SetRole(dtm.Role).
 		SetSpeciality(dtm.Speciality).
+		SetPhotoPath(dtm.PhotoPath).
 		Save(ctx)
 	if err != nil {
 		return nil, db.WrapError(err)
@@ -101,6 +124,7 @@ func ToDoctorDTO(model *ent.Doctor) *dto.Doctor {
 		Surname:    model.Surname,
 		Speciality: model.Speciality,
 		Role:       model.Role,
+		PhotoPath:  model.PhotoPath,
 	}
 }
 

@@ -817,6 +817,108 @@ const docTemplate = `{
                 }
             }
         },
+        "/doctorsPatients": {
+            "post": {
+                "description": "add DoctorsPatients by json",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "doctorsPatients"
+                ],
+                "summary": "Add a DoctorsPatients",
+                "parameters": [
+                    {
+                        "description": "Add doctorsPatients",
+                        "name": "Doctor",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.AddDoctorsPatients"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Patient"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/doctorsPatients/{id}": {
+            "get": {
+                "description": "get string by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "doctorsPatients"
+                ],
+                "summary": "Show Doctor's patients",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Doctor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Patient"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
         "/patients": {
             "get": {
                 "description": "get Patients",
@@ -1608,6 +1710,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "photoPath": {
+                    "type": "string"
+                },
                 "role": {
                     "type": "string"
                 },
@@ -1761,6 +1866,10 @@ const docTemplate = `{
         "model.AddDoctor": {
             "type": "object",
             "properties": {
+                "PhotoPath": {
+                    "type": "string",
+                    "example": "doctor PhotoPath"
+                },
                 "Role": {
                     "type": "string",
                     "example": "doctor role"
@@ -1776,6 +1885,21 @@ const docTemplate = `{
                 "surname": {
                     "type": "string",
                     "example": "doctor surname"
+                }
+            }
+        },
+        "model.AddDoctorsPatients": {
+            "type": "object",
+            "properties": {
+                "doctorId": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
+                },
+                "patientId": {
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
                 }
             }
         },
@@ -1860,10 +1984,6 @@ const docTemplate = `{
                 "Tablets": {
                     "type": "string",
                     "example": "Abrobius"
-                },
-                "UpdatedAt": {
-                    "type": "string",
-                    "example": "1"
                 }
             }
         },
@@ -1892,6 +2012,10 @@ const docTemplate = `{
         "model.Doctor": {
             "type": "object",
             "properties": {
+                "PhotoPath": {
+                    "type": "string",
+                    "example": "doctor PhotoPath"
+                },
                 "Role": {
                     "type": "string",
                     "example": "doctor role"
@@ -2046,6 +2170,10 @@ const docTemplate = `{
         "model.UpdateDoctor": {
             "type": "object",
             "properties": {
+                "PhotoPath": {
+                    "type": "string",
+                    "example": "doctor PhotoPath"
+                },
                 "Role": {
                     "type": "string",
                     "example": "doctor role"
@@ -2145,10 +2273,6 @@ const docTemplate = `{
                 "Tablets": {
                     "type": "string",
                     "example": "Abrobius"
-                },
-                "UpdatedAt": {
-                    "type": "string",
-                    "example": "1"
                 }
             }
         }

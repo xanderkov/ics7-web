@@ -25,6 +25,8 @@ definitions:
     properties:
       id:
         type: integer
+      photoPath:
+        type: string
       role:
         type: string
       speciality:
@@ -128,6 +130,9 @@ definitions:
     type: object
   model.AddDoctor:
     properties:
+      PhotoPath:
+        example: doctor PhotoPath
+        type: string
       Role:
         example: doctor role
         type: string
@@ -140,6 +145,17 @@ definitions:
       surname:
         example: doctor surname
         type: string
+    type: object
+  model.AddDoctorsPatients:
+    properties:
+      doctorId:
+        example: 1
+        format: int64
+        type: integer
+      patientId:
+        example: 1
+        format: int64
+        type: integer
     type: object
   model.AddPatient:
     properties:
@@ -201,9 +217,6 @@ definitions:
       Tablets:
         example: Abrobius
         type: string
-      UpdatedAt:
-        example: "1"
-        type: string
     type: object
   model.Disease:
     properties:
@@ -223,6 +236,9 @@ definitions:
     type: object
   model.Doctor:
     properties:
+      PhotoPath:
+        example: doctor PhotoPath
+        type: string
       Role:
         example: doctor role
         type: string
@@ -335,6 +351,9 @@ definitions:
     type: object
   model.UpdateDoctor:
     properties:
+      PhotoPath:
+        example: doctor PhotoPath
+        type: string
       Role:
         example: doctor role
         type: string
@@ -407,9 +426,6 @@ definitions:
         type: string
       Tablets:
         example: Abrobius
-        type: string
-      UpdatedAt:
-        example: "1"
         type: string
     type: object
 info:
@@ -947,6 +963,73 @@ paths:
       summary: Update a doctor
       tags:
       - Doctors
+  /doctorsPatients:
+    post:
+      consumes:
+      - application/json
+      description: add DoctorsPatients by json
+      parameters:
+      - description: Add doctorsPatients
+        in: body
+        name: Doctor
+        required: true
+        schema:
+          $ref: '#/definitions/model.AddDoctorsPatients'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Patient'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Add a DoctorsPatients
+      tags:
+      - doctorsPatients
+  /doctorsPatients/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      parameters:
+      - description: Doctor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Patient'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Show Doctor's patients
+      tags:
+      - doctorsPatients
   /patients:
     get:
       consumes:

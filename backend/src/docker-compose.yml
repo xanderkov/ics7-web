@@ -51,7 +51,6 @@ services:
     restart: always
 
   hospital-2:
-    build: .
     image: hospital:latest
     depends_on:
       - postgres
@@ -63,7 +62,6 @@ services:
     restart: always
 
   hospital-3:
-    build: .
     image: hospital:latest
     depends_on:
       - postgres
@@ -75,7 +73,6 @@ services:
     restart: always
 
   hospital-mirror:
-    build: .
     image: hospital:latest
     depends_on:
       - postgres-slave

@@ -1083,6 +1083,7 @@ type DoctorMutation struct {
 	surname        *string
 	speciality     *string
 	role           *string
+	photoPath      *string
 	clearedFields  map[string]struct{}
 	treats         map[int]struct{}
 	removedtreats  map[int]struct{}
@@ -1336,6 +1337,42 @@ func (m *DoctorMutation) ResetRole() {
 	m.role = nil
 }
 
+// SetPhotoPath sets the "photoPath" field.
+func (m *DoctorMutation) SetPhotoPath(s string) {
+	m.photoPath = &s
+}
+
+// PhotoPath returns the value of the "photoPath" field in the mutation.
+func (m *DoctorMutation) PhotoPath() (r string, exists bool) {
+	v := m.photoPath
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPhotoPath returns the old "photoPath" field's value of the Doctor entity.
+// If the Doctor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DoctorMutation) OldPhotoPath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPhotoPath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPhotoPath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPhotoPath: %w", err)
+	}
+	return oldValue.PhotoPath, nil
+}
+
+// ResetPhotoPath resets all changes to the "photoPath" field.
+func (m *DoctorMutation) ResetPhotoPath() {
+	m.photoPath = nil
+}
+
 // AddTreatIDs adds the "treats" edge to the Patient entity by ids.
 func (m *DoctorMutation) AddTreatIDs(ids ...int) {
 	if m.treats == nil {
@@ -1463,7 +1500,7 @@ func (m *DoctorMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *DoctorMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.tokenId != nil {
 		fields = append(fields, doctor.FieldTokenId)
 	}
@@ -1475,6 +1512,9 @@ func (m *DoctorMutation) Fields() []string {
 	}
 	if m.role != nil {
 		fields = append(fields, doctor.FieldRole)
+	}
+	if m.photoPath != nil {
+		fields = append(fields, doctor.FieldPhotoPath)
 	}
 	return fields
 }
@@ -1492,6 +1532,8 @@ func (m *DoctorMutation) Field(name string) (ent.Value, bool) {
 		return m.Speciality()
 	case doctor.FieldRole:
 		return m.Role()
+	case doctor.FieldPhotoPath:
+		return m.PhotoPath()
 	}
 	return nil, false
 }
@@ -1509,6 +1551,8 @@ func (m *DoctorMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldSpeciality(ctx)
 	case doctor.FieldRole:
 		return m.OldRole(ctx)
+	case doctor.FieldPhotoPath:
+		return m.OldPhotoPath(ctx)
 	}
 	return nil, fmt.Errorf("unknown Doctor field %s", name)
 }
@@ -1545,6 +1589,13 @@ func (m *DoctorMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRole(v)
+		return nil
+	case doctor.FieldPhotoPath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPhotoPath(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Doctor field %s", name)
@@ -1606,6 +1657,9 @@ func (m *DoctorMutation) ResetField(name string) error {
 		return nil
 	case doctor.FieldRole:
 		m.ResetRole()
+		return nil
+	case doctor.FieldPhotoPath:
+		m.ResetPhotoPath()
 		return nil
 	}
 	return fmt.Errorf("unknown Doctor field %s", name)

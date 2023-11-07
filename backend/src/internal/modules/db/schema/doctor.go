@@ -18,6 +18,7 @@ func (Doctor) Fields() []ent.Field {
 		field.String("surname"),
 		field.String("speciality"),
 		field.String("role"),
+		field.String("photoPath"),
 	}
 }
 

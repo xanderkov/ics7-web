@@ -6,6 +6,7 @@ type Doctor struct {
 	Surname    string
 	Speciality string
 	Role       string
+	PhotoPath  string
 }
 
 type Doctors []*Doctor
@@ -15,6 +16,7 @@ type CreateDoctor struct {
 	TokenId    string
 	Speciality string
 	Role       string
+	PhotoPath  string
 }
 
 type UpdateDoctor struct {
@@ -22,4 +24,5 @@ type UpdateDoctor struct {
 	Surname    string
 	Speciality string
 	Role       string
+	PhotoPath  string
 }

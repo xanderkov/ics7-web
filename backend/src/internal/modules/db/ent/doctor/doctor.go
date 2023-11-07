@@ -20,6 +20,8 @@ const (
 	FieldSpeciality = "speciality"
 	// FieldRole holds the string denoting the role field in the database.
 	FieldRole = "role"
+	// FieldPhotoPath holds the string denoting the photopath field in the database.
+	FieldPhotoPath = "photo_path"
 	// EdgeTreats holds the string denoting the treats edge name in mutations.
 	EdgeTreats = "treats"
 	// EdgeAccount holds the string denoting the account edge name in mutations.
@@ -47,6 +49,7 @@ var Columns = []string{
 	FieldSurname,
 	FieldSpeciality,
 	FieldRole,
+	FieldPhotoPath,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "doctors"
@@ -102,6 +105,11 @@ func BySpeciality(opts ...sql.OrderTermOption) Order {
 // ByRole orders the results by the role field.
 func ByRole(opts ...sql.OrderTermOption) Order {
 	return sql.OrderByField(FieldRole, opts...).ToFunc()
+}
+
+// ByPhotoPath orders the results by the photoPath field.
+func ByPhotoPath(opts ...sql.OrderTermOption) Order {
+	return sql.OrderByField(FieldPhotoPath, opts...).ToFunc()
 }
 
 // ByTreatsCount orders the results by treats count.

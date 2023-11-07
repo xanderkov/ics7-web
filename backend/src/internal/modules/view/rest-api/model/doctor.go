@@ -8,6 +8,7 @@ type Doctor struct {
 	Surname    string `json:"Surname" example:"doctor surname"`
 	Speciality string `json:"Speciality" example:"doctor speciality"`
 	Role       string `json:"Role" example:"doctor role"`
+	PhotoPath  string `json:"PhotoPath" example:"doctor PhotoPath"`
 }
 
 var (
@@ -19,6 +20,7 @@ type AddDoctor struct {
 	Surname    string `json:"surname" example:"doctor surname"`
 	Speciality string `json:"Speciality" example:"doctor speciality"`
 	Role       string `json:"Role" example:"doctor role"`
+	PhotoPath  string `json:"PhotoPath" example:"doctor PhotoPath"`
 }
 
 type UpdateDoctor struct {
@@ -26,4 +28,5 @@ type UpdateDoctor struct {
 	Surname    string `json:"surname" example:"doctor surname"`
 	Speciality string `json:"Speciality" example:"doctor speciality"`
 	Role       string `json:"Role" example:"doctor role"`
+	PhotoPath  string `json:"PhotoPath" example:"doctor PhotoPath"`
 }

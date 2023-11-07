@@ -74,6 +74,11 @@ func Role(v string) predicate.Doctor {
 	return predicate.Doctor(sql.FieldEQ(FieldRole, v))
 }
 
+// PhotoPath applies equality check predicate on the "photoPath" field. It's identical to PhotoPathEQ.
+func PhotoPath(v string) predicate.Doctor {
+	return predicate.Doctor(sql.FieldEQ(FieldPhotoPath, v))
+}
+
 // TokenIdEQ applies the EQ predicate on the "tokenId" field.
 func TokenIdEQ(v string) predicate.Doctor {
 	return predicate.Doctor(sql.FieldEQ(FieldTokenId, v))
@@ -332,6 +337,71 @@ func RoleEqualFold(v string) predicate.Doctor {
 // RoleContainsFold applies the ContainsFold predicate on the "role" field.
 func RoleContainsFold(v string) predicate.Doctor {
 	return predicate.Doctor(sql.FieldContainsFold(FieldRole, v))
+}
+
+// PhotoPathEQ applies the EQ predicate on the "photoPath" field.
+func PhotoPathEQ(v string) predicate.Doctor {
+	return predicate.Doctor(sql.FieldEQ(FieldPhotoPath, v))
+}
+
+// PhotoPathNEQ applies the NEQ predicate on the "photoPath" field.
+func PhotoPathNEQ(v string) predicate.Doctor {
+	return predicate.Doctor(sql.FieldNEQ(FieldPhotoPath, v))
+}
+
+// PhotoPathIn applies the In predicate on the "photoPath" field.
+func PhotoPathIn(vs ...string) predicate.Doctor {
+	return predicate.Doctor(sql.FieldIn(FieldPhotoPath, vs...))
+}
+
+// PhotoPathNotIn applies the NotIn predicate on the "photoPath" field.
+func PhotoPathNotIn(vs ...string) predicate.Doctor {
+	return predicate.Doctor(sql.FieldNotIn(FieldPhotoPath, vs...))
+}
+
+// PhotoPathGT applies the GT predicate on the "photoPath" field.
+func PhotoPathGT(v string) predicate.Doctor {
+	return predicate.Doctor(sql.FieldGT(FieldPhotoPath, v))
+}
+
+// PhotoPathGTE applies the GTE predicate on the "photoPath" field.
+func PhotoPathGTE(v string) predicate.Doctor {
+	return predicate.Doctor(sql.FieldGTE(FieldPhotoPath, v))
+}
+
+// PhotoPathLT applies the LT predicate on the "photoPath" field.
+func PhotoPathLT(v string) predicate.Doctor {
+	return predicate.Doctor(sql.FieldLT(FieldPhotoPath, v))
+}
+
+// PhotoPathLTE applies the LTE predicate on the "photoPath" field.
+func PhotoPathLTE(v string) predicate.Doctor {
+	return predicate.Doctor(sql.FieldLTE(FieldPhotoPath, v))
+}
+
+// PhotoPathContains applies the Contains predicate on the "photoPath" field.
+func PhotoPathContains(v string) predicate.Doctor {
+	return predicate.Doctor(sql.FieldContains(FieldPhotoPath, v))
+}
+
+// PhotoPathHasPrefix applies the HasPrefix predicate on the "photoPath" field.
+func PhotoPathHasPrefix(v string) predicate.Doctor {
+	return predicate.Doctor(sql.FieldHasPrefix(FieldPhotoPath, v))
+}
+
+// PhotoPathHasSuffix applies the HasSuffix predicate on the "photoPath" field.
+func PhotoPathHasSuffix(v string) predicate.Doctor {
+	return predicate.Doctor(sql.FieldHasSuffix(FieldPhotoPath, v))
+}
+
+// PhotoPathEqualFold applies the EqualFold predicate on the "photoPath" field.
+func PhotoPathEqualFold(v string) predicate.Doctor {
+	return predicate.Doctor(sql.FieldEqualFold(FieldPhotoPath, v))
+}
+
+// PhotoPathContainsFold applies the ContainsFold predicate on the "photoPath" field.
+func PhotoPathContainsFold(v string) predicate.Doctor {
+	return predicate.Doctor(sql.FieldContainsFold(FieldPhotoPath, v))
 }
 
 // HasTreats applies the HasEdge predicate on the "treats" edge.

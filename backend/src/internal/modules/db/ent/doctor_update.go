@@ -53,6 +53,12 @@ func (du *DoctorUpdate) SetRole(s string) *DoctorUpdate {
 	return du
 }
 
+// SetPhotoPath sets the "photoPath" field.
+func (du *DoctorUpdate) SetPhotoPath(s string) *DoctorUpdate {
+	du.mutation.SetPhotoPath(s)
+	return du
+}
+
 // AddTreatIDs adds the "treats" edge to the Patient entity by IDs.
 func (du *DoctorUpdate) AddTreatIDs(ids ...int) *DoctorUpdate {
 	du.mutation.AddTreatIDs(ids...)
@@ -166,6 +172,9 @@ func (du *DoctorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := du.mutation.Role(); ok {
 		_spec.SetField(doctor.FieldRole, field.TypeString, value)
+	}
+	if value, ok := du.mutation.PhotoPath(); ok {
+		_spec.SetField(doctor.FieldPhotoPath, field.TypeString, value)
 	}
 	if du.mutation.TreatsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -282,6 +291,12 @@ func (duo *DoctorUpdateOne) SetSpeciality(s string) *DoctorUpdateOne {
 // SetRole sets the "role" field.
 func (duo *DoctorUpdateOne) SetRole(s string) *DoctorUpdateOne {
 	duo.mutation.SetRole(s)
+	return duo
+}
+
+// SetPhotoPath sets the "photoPath" field.
+func (duo *DoctorUpdateOne) SetPhotoPath(s string) *DoctorUpdateOne {
+	duo.mutation.SetPhotoPath(s)
 	return duo
 }
 
@@ -428,6 +443,9 @@ func (duo *DoctorUpdateOne) sqlSave(ctx context.Context) (_node *Doctor, err err
 	}
 	if value, ok := duo.mutation.Role(); ok {
 		_spec.SetField(doctor.FieldRole, field.TypeString, value)
+	}
+	if value, ok := duo.mutation.PhotoPath(); ok {
+		_spec.SetField(doctor.FieldPhotoPath, field.TypeString, value)
 	}
 	if duo.mutation.TreatsCleared() {
 		edge := &sqlgraph.EdgeSpec{
