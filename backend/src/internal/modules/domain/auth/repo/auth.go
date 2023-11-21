@@ -4,6 +4,7 @@ import (
 	"context"
 	"hospital/internal/modules/db"
 	"hospital/internal/modules/db/ent"
+	"hospital/internal/modules/db/ent/account"
 	"hospital/internal/modules/domain/auth/dto"
 )
 
@@ -40,6 +41,18 @@ func (r *AccountRepo) Create(ctx context.Context, dtm *dto.CreateAccount) (*dto.
 		SetLogin(dtm.Login).
 		SetPasswordHash(dtm.Password).
 		Save(ctx)
+	if err != nil {
+		return nil, db.WrapError(err)
+	}
+
+	return ToAccountDTO(Account), nil
+}
+
+func (r *AccountRepo) Login(ctx context.Context, dtm *dto.CreateAccount) (*dto.Account, error) {
+	Account, err := r.client.Account.Query().
+		Where(account.LoginEQ(dtm.Login)).
+		Where(account.PasswordHashEQ(dtm.Password)).
+		Only(ctx)
 	if err != nil {
 		return nil, db.WrapError(err)
 	}

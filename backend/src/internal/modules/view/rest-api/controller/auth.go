@@ -187,3 +187,33 @@ func (c *Controller) AddAccount(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, Account)
 }
+
+// LoginAccount godoc
+// @Summary      Login an Account
+// @Description  login Account by json
+// @Tags         Account
+// @Accept       json
+// @Produce      json
+// @Param		 Account	body	model.AddAccount	true	"Login Account"
+// @Success      200  {object}  dto.Account
+// @Failure      400  {object}  httputil.HTTPError
+// @Failure      404  {object}  httputil.HTTPError
+// @Failure      500  {object}  httputil.HTTPError
+// @Router       /accounts/login [post]
+func (c *Controller) LoginAccount(ctx *gin.Context) {
+	var addAccount model.AddAccount
+	if err := ctx.ShouldBindJSON(&addAccount); err != nil {
+		httputil.NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+	loginAccount := &Account_dto.CreateAccount{
+		Login:    addAccount.Login,
+		Password: addAccount.PasswordHash,
+	}
+	_, err := c.accountService.Login(ctx, loginAccount)
+	if err != nil {
+		httputil.NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{})
+}

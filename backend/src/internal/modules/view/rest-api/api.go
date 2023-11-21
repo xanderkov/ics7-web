@@ -117,6 +117,7 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 			account.PATCH(":id", c.UpdateAccount)
 			account.DELETE(":id", c.DeleteAccount)
 
+			account.POST("/login", c.LoginAccount)
 		}
 
 		doctorsPatients := v1.Group("/doctorsPatients")

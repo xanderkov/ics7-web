@@ -50,6 +50,7 @@ type IAccountRepo interface {
 	Create(ctx context.Context, dtm *dto.CreateAccount) (*dto.Account, error)
 	Update(ctx context.Context, id int, dtm *dto.UpdateAccount) (*dto.Account, error)
 	Delete(ctx context.Context, id int) error
+	Login(ctx context.Context, dtm *dto.CreateAccount) (*dto.Account, error)
 }
 
 type AccountService struct {
@@ -80,4 +81,8 @@ func (r *AccountService) Update(ctx context.Context, id int, dtm *dto.UpdateAcco
 
 func (r *AccountService) Delete(ctx context.Context, id int) error {
 	return r.repo.Delete(ctx, id)
+}
+
+func (r *AccountService) Login(ctx context.Context, dtm *dto.CreateAccount) (*dto.Account, error) {
+	return r.repo.Login(ctx, dtm)
 }
