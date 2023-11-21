@@ -2147,9 +2147,22 @@ func (m *PatientMutation) OldRoomNumber(ctx context.Context) (v int, err error) 
 	return oldValue.RoomNumber, nil
 }
 
+// ClearRoomNumber clears the value of the "roomNumber" field.
+func (m *PatientMutation) ClearRoomNumber() {
+	m.repo = nil
+	m.clearedFields[patient.FieldRoomNumber] = struct{}{}
+}
+
+// RoomNumberCleared returns if the "roomNumber" field was cleared in this mutation.
+func (m *PatientMutation) RoomNumberCleared() bool {
+	_, ok := m.clearedFields[patient.FieldRoomNumber]
+	return ok
+}
+
 // ResetRoomNumber resets all changes to the "roomNumber" field.
 func (m *PatientMutation) ResetRoomNumber() {
 	m.repo = nil
+	delete(m.clearedFields, patient.FieldRoomNumber)
 }
 
 // SetDegreeOfDanger sets the "degreeOfDanger" field.
@@ -2220,7 +2233,7 @@ func (m *PatientMutation) ClearRepo() {
 
 // RepoCleared reports if the "repo" edge to the Room entity was cleared.
 func (m *PatientMutation) RepoCleared() bool {
-	return m.clearedrepo
+	return m.RoomNumberCleared() || m.clearedrepo
 }
 
 // RepoID returns the "repo" edge ID in the mutation.
@@ -2621,7 +2634,11 @@ func (m *PatientMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *PatientMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(patient.FieldRoomNumber) {
+		fields = append(fields, patient.FieldRoomNumber)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -2634,6 +2651,11 @@ func (m *PatientMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *PatientMutation) ClearField(name string) error {
+	switch name {
+	case patient.FieldRoomNumber:
+		m.ClearRoomNumber()
+		return nil
+	}
 	return fmt.Errorf("unknown Patient nullable field %s", name)
 }
 
@@ -3837,9 +3859,22 @@ func (m *TreatmentMutation) OldPatientNumber(ctx context.Context) (v int, err er
 	return oldValue.PatientNumber, nil
 }
 
+// ClearPatientNumber clears the value of the "patientNumber" field.
+func (m *TreatmentMutation) ClearPatientNumber() {
+	m.treat = nil
+	m.clearedFields[treatment.FieldPatientNumber] = struct{}{}
+}
+
+// PatientNumberCleared returns if the "patientNumber" field was cleared in this mutation.
+func (m *TreatmentMutation) PatientNumberCleared() bool {
+	_, ok := m.clearedFields[treatment.FieldPatientNumber]
+	return ok
+}
+
 // ResetPatientNumber resets all changes to the "patientNumber" field.
 func (m *TreatmentMutation) ResetPatientNumber() {
 	m.treat = nil
+	delete(m.clearedFields, treatment.FieldPatientNumber)
 }
 
 // SetUpdatedAt sets the "updated_at" field.
@@ -3890,7 +3925,7 @@ func (m *TreatmentMutation) ClearTreat() {
 
 // TreatCleared reports if the "treat" edge to the Patient entity was cleared.
 func (m *TreatmentMutation) TreatCleared() bool {
-	return m.clearedtreat
+	return m.PatientNumberCleared() || m.clearedtreat
 }
 
 // TreatID returns the "treat" edge ID in the mutation.
@@ -4080,7 +4115,11 @@ func (m *TreatmentMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *TreatmentMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(treatment.FieldPatientNumber) {
+		fields = append(fields, treatment.FieldPatientNumber)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -4093,6 +4132,11 @@ func (m *TreatmentMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *TreatmentMutation) ClearField(name string) error {
+	switch name {
+	case treatment.FieldPatientNumber:
+		m.ClearPatientNumber()
+		return nil
+	}
 	return fmt.Errorf("unknown Treatment nullable field %s", name)
 }
 

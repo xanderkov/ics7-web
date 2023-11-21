@@ -67,7 +67,7 @@ var (
 		{Name: "weight", Type: field.TypeFloat64},
 		{Name: "degree_of_danger", Type: field.TypeInt},
 		{Name: "disease_has", Type: field.TypeInt, Nullable: true},
-		{Name: "room_number", Type: field.TypeInt},
+		{Name: "room_number", Type: field.TypeInt, Nullable: true},
 	}
 	// PatientsTable holds the schema information for the "patients" table.
 	PatientsTable = &schema.Table{
@@ -85,7 +85,7 @@ var (
 				Symbol:     "patients_rooms_contains",
 				Columns:    []*schema.Column{PatientsColumns[8]},
 				RefColumns: []*schema.Column{RoomsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
 			},
 		},
 	}
@@ -111,7 +111,7 @@ var (
 		{Name: "psychological_treatment", Type: field.TypeString},
 		{Name: "survey", Type: field.TypeString},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "patient_number", Type: field.TypeInt},
+		{Name: "patient_number", Type: field.TypeInt, Nullable: true},
 	}
 	// TreatmentsTable holds the schema information for the "treatments" table.
 	TreatmentsTable = &schema.Table{
@@ -123,7 +123,7 @@ var (
 				Symbol:     "treatments_patients_treats",
 				Columns:    []*schema.Column{TreatmentsColumns[5]},
 				RefColumns: []*schema.Column{PatientsColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
 			},
 		},
 	}

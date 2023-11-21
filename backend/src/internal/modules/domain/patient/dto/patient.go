@@ -9,6 +9,7 @@ type Patient struct {
 	Weight         float64
 	RoomNumber     int
 	DegreeOfDanger int
+	DiseaseId      int
 }
 
 type Patients []*Patient

@@ -53,6 +53,20 @@ func (tu *TreatmentUpdate) SetPatientNumber(i int) *TreatmentUpdate {
 	return tu
 }
 
+// SetNillablePatientNumber sets the "patientNumber" field if the given value is not nil.
+func (tu *TreatmentUpdate) SetNillablePatientNumber(i *int) *TreatmentUpdate {
+	if i != nil {
+		tu.SetPatientNumber(*i)
+	}
+	return tu
+}
+
+// ClearPatientNumber clears the value of the "patientNumber" field.
+func (tu *TreatmentUpdate) ClearPatientNumber() *TreatmentUpdate {
+	tu.mutation.ClearPatientNumber()
+	return tu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (tu *TreatmentUpdate) SetUpdatedAt(t time.Time) *TreatmentUpdate {
 	tu.mutation.SetUpdatedAt(t)
@@ -62,6 +76,14 @@ func (tu *TreatmentUpdate) SetUpdatedAt(t time.Time) *TreatmentUpdate {
 // SetTreatID sets the "treat" edge to the Patient entity by ID.
 func (tu *TreatmentUpdate) SetTreatID(id int) *TreatmentUpdate {
 	tu.mutation.SetTreatID(id)
+	return tu
+}
+
+// SetNillableTreatID sets the "treat" edge to the Patient entity by ID if the given value is not nil.
+func (tu *TreatmentUpdate) SetNillableTreatID(id *int) *TreatmentUpdate {
+	if id != nil {
+		tu = tu.SetTreatID(*id)
+	}
 	return tu
 }
 
@@ -117,18 +139,7 @@ func (tu *TreatmentUpdate) defaults() {
 	}
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (tu *TreatmentUpdate) check() error {
-	if _, ok := tu.mutation.TreatID(); tu.mutation.TreatCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Treatment.treat"`)
-	}
-	return nil
-}
-
 func (tu *TreatmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := tu.check(); err != nil {
-		return n, err
-	}
 	_spec := sqlgraph.NewUpdateSpec(treatment.Table, treatment.Columns, sqlgraph.NewFieldSpec(treatment.FieldID, field.TypeInt))
 	if ps := tu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -222,6 +233,20 @@ func (tuo *TreatmentUpdateOne) SetPatientNumber(i int) *TreatmentUpdateOne {
 	return tuo
 }
 
+// SetNillablePatientNumber sets the "patientNumber" field if the given value is not nil.
+func (tuo *TreatmentUpdateOne) SetNillablePatientNumber(i *int) *TreatmentUpdateOne {
+	if i != nil {
+		tuo.SetPatientNumber(*i)
+	}
+	return tuo
+}
+
+// ClearPatientNumber clears the value of the "patientNumber" field.
+func (tuo *TreatmentUpdateOne) ClearPatientNumber() *TreatmentUpdateOne {
+	tuo.mutation.ClearPatientNumber()
+	return tuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (tuo *TreatmentUpdateOne) SetUpdatedAt(t time.Time) *TreatmentUpdateOne {
 	tuo.mutation.SetUpdatedAt(t)
@@ -231,6 +256,14 @@ func (tuo *TreatmentUpdateOne) SetUpdatedAt(t time.Time) *TreatmentUpdateOne {
 // SetTreatID sets the "treat" edge to the Patient entity by ID.
 func (tuo *TreatmentUpdateOne) SetTreatID(id int) *TreatmentUpdateOne {
 	tuo.mutation.SetTreatID(id)
+	return tuo
+}
+
+// SetNillableTreatID sets the "treat" edge to the Patient entity by ID if the given value is not nil.
+func (tuo *TreatmentUpdateOne) SetNillableTreatID(id *int) *TreatmentUpdateOne {
+	if id != nil {
+		tuo = tuo.SetTreatID(*id)
+	}
 	return tuo
 }
 
@@ -299,18 +332,7 @@ func (tuo *TreatmentUpdateOne) defaults() {
 	}
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (tuo *TreatmentUpdateOne) check() error {
-	if _, ok := tuo.mutation.TreatID(); tuo.mutation.TreatCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Treatment.treat"`)
-	}
-	return nil
-}
-
 func (tuo *TreatmentUpdateOne) sqlSave(ctx context.Context) (_node *Treatment, err error) {
-	if err := tuo.check(); err != nil {
-		return _node, err
-	}
 	_spec := sqlgraph.NewUpdateSpec(treatment.Table, treatment.Columns, sqlgraph.NewFieldSpec(treatment.FieldID, field.TypeInt))
 	id, ok := tuo.mutation.ID()
 	if !ok {

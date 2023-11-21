@@ -45,6 +45,14 @@ func (tc *TreatmentCreate) SetPatientNumber(i int) *TreatmentCreate {
 	return tc
 }
 
+// SetNillablePatientNumber sets the "patientNumber" field if the given value is not nil.
+func (tc *TreatmentCreate) SetNillablePatientNumber(i *int) *TreatmentCreate {
+	if i != nil {
+		tc.SetPatientNumber(*i)
+	}
+	return tc
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (tc *TreatmentCreate) SetUpdatedAt(t time.Time) *TreatmentCreate {
 	tc.mutation.SetUpdatedAt(t)
@@ -62,6 +70,14 @@ func (tc *TreatmentCreate) SetNillableUpdatedAt(t *time.Time) *TreatmentCreate {
 // SetTreatID sets the "treat" edge to the Patient entity by ID.
 func (tc *TreatmentCreate) SetTreatID(id int) *TreatmentCreate {
 	tc.mutation.SetTreatID(id)
+	return tc
+}
+
+// SetNillableTreatID sets the "treat" edge to the Patient entity by ID if the given value is not nil.
+func (tc *TreatmentCreate) SetNillableTreatID(id *int) *TreatmentCreate {
+	if id != nil {
+		tc = tc.SetTreatID(*id)
+	}
 	return tc
 }
 
@@ -122,14 +138,8 @@ func (tc *TreatmentCreate) check() error {
 	if _, ok := tc.mutation.Survey(); !ok {
 		return &ValidationError{Name: "survey", err: errors.New(`ent: missing required field "Treatment.survey"`)}
 	}
-	if _, ok := tc.mutation.PatientNumber(); !ok {
-		return &ValidationError{Name: "patientNumber", err: errors.New(`ent: missing required field "Treatment.patientNumber"`)}
-	}
 	if _, ok := tc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Treatment.updated_at"`)}
-	}
-	if _, ok := tc.mutation.TreatID(); !ok {
-		return &ValidationError{Name: "treat", err: errors.New(`ent: missing required edge "Treatment.treat"`)}
 	}
 	return nil
 }

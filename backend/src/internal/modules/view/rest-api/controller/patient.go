@@ -33,6 +33,82 @@ func (c *Controller) ShowPatient(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, patient)
 }
 
+// ShowPatientDisease godoc
+// @Summary      Show a Patient Disease
+// @Description  get string by ID
+// @Tags         Patients
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Patient ID"
+// @Success      200  {object}  dto.Disease
+// @Failure      400  {object}  httputil.HTTPError
+// @Failure      404  {object}  httputil.HTTPError
+// @Failure      500  {object}  httputil.HTTPError
+// @Router       /patientsDisease/{id} [get]
+func (c *Controller) ShowPatientDisease(ctx *gin.Context) {
+	id := ctx.Param("id")
+	aid, err := strconv.Atoi(id)
+
+	patient, err := c.patientService.GetDiseaseById(ctx, aid)
+	if err != nil {
+		httputil.NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, patient)
+}
+
+// ShowPatientThreat godoc
+// @Summary      Show a Patient Treatment
+// @Description  get string by ID
+// @Tags         Patients
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Patient ID"
+// @Success      200  {object}  dto.Treatment
+// @Failure      400  {object}  httputil.HTTPError
+// @Failure      404  {object}  httputil.HTTPError
+// @Failure      500  {object}  httputil.HTTPError
+// @Router       /patientsThreat/{id} [get]
+func (c *Controller) ShowPatientThreat(ctx *gin.Context) {
+	id := ctx.Param("id")
+	aid, err := strconv.Atoi(id)
+
+	patient, err := c.patientService.GetThreatById(ctx, aid)
+	if err != nil {
+		httputil.NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, patient)
+}
+
+// AddDiseasePatient  godoc
+// @Summary      Add a Disease
+// @Description  add Disease by json
+// @Tags         Patients
+// @Accept       json
+// @Produce      json
+// @Param		 Doctor	body	model.AddDiseaseToPatient	true	"Add doctorsPatients"
+// @Success      200  {object}  dto.Disease
+// @Failure      400  {object}  httputil.HTTPError
+// @Failure      404  {object}  httputil.HTTPError
+// @Failure      500  {object}  httputil.HTTPError
+// @Router       /patientsDisease [post]
+func (c *Controller) AddDiseasePatient(ctx *gin.Context) {
+
+	var addAccount model.AddDiseaseToPatient
+	if err := ctx.ShouldBindJSON(&addAccount); err != nil {
+		httputil.NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+
+	doctor, err := c.patientService.AddDiseaseById(ctx, addAccount.PatientId, addAccount.DiseaseId)
+	if err != nil {
+		httputil.NewError(ctx, http.StatusBadRequest, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, doctor)
+}
+
 // ListPatients godoc
 //
 //	@Summary		List Patients

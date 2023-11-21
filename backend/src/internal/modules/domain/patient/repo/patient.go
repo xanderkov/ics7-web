@@ -4,7 +4,11 @@ import (
 	"context"
 	"hospital/internal/modules/db"
 	"hospital/internal/modules/db/ent"
+	d_dto "hospital/internal/modules/domain/disease/dto"
+	"hospital/internal/modules/domain/disease/repo"
 	"hospital/internal/modules/domain/patient/dto"
+	treatment_dto "hospital/internal/modules/domain/treatment/dto"
+	t_repo "hospital/internal/modules/domain/treatment/repo"
 )
 
 type PatientRepo struct {
@@ -24,6 +28,46 @@ func (r *PatientRepo) GetById(ctx context.Context, id int) (*dto.Patient, error)
 	}
 
 	return ToPatientDTO(Patient), nil
+}
+
+func (r *PatientRepo) GetDiseaseById(ctx context.Context, id int) (*d_dto.Disease, error) {
+	Patient, err := r.client.Patient.Get(ctx, id)
+	if err != nil {
+		return nil, db.WrapError(err)
+	}
+
+	Disease, err := Patient.QueryIlls().All(ctx)
+
+	if err != nil {
+		return nil, db.WrapError(err)
+	}
+
+	return repo.ToDiseaseDTO(Disease[0]), nil
+}
+
+func (r *PatientRepo) GetThreatById(ctx context.Context, id int) (treatment_dto.Treatments, error) {
+	Patient, err := r.client.Patient.Get(ctx, id)
+	if err != nil {
+		return nil, db.WrapError(err)
+	}
+
+	Threat, err := Patient.QueryTreats().All(ctx)
+
+	if err != nil {
+		return nil, db.WrapError(err)
+	}
+
+	return t_repo.ToTreatmentDTOs(Threat), nil
+}
+
+func (r *PatientRepo) AddDiseaseById(ctx context.Context, idP int, idD int) (*d_dto.Disease, error) {
+	Disease, err := r.client.Disease.Get(ctx, idD)
+	_, err = r.client.Patient.UpdateOneID(idP).SetIllsID(idD).Save(ctx)
+	if err != nil {
+		return nil, db.WrapError(err)
+	}
+
+	return repo.ToDiseaseDTO(Disease), nil
 }
 
 func (r *PatientRepo) List(ctx context.Context) (dto.Patients, error) {

@@ -384,6 +384,16 @@ func RoomNumberNotIn(vs ...int) predicate.Patient {
 	return predicate.Patient(sql.FieldNotIn(FieldRoomNumber, vs...))
 }
 
+// RoomNumberIsNil applies the IsNil predicate on the "roomNumber" field.
+func RoomNumberIsNil() predicate.Patient {
+	return predicate.Patient(sql.FieldIsNull(FieldRoomNumber))
+}
+
+// RoomNumberNotNil applies the NotNil predicate on the "roomNumber" field.
+func RoomNumberNotNil() predicate.Patient {
+	return predicate.Patient(sql.FieldNotNull(FieldRoomNumber))
+}
+
 // DegreeOfDangerEQ applies the EQ predicate on the "degreeOfDanger" field.
 func DegreeOfDangerEQ(v int) predicate.Patient {
 	return predicate.Patient(sql.FieldEQ(FieldDegreeOfDanger, v))

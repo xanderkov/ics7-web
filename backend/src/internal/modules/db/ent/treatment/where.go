@@ -295,6 +295,16 @@ func PatientNumberNotIn(vs ...int) predicate.Treatment {
 	return predicate.Treatment(sql.FieldNotIn(FieldPatientNumber, vs...))
 }
 
+// PatientNumberIsNil applies the IsNil predicate on the "patientNumber" field.
+func PatientNumberIsNil() predicate.Treatment {
+	return predicate.Treatment(sql.FieldIsNull(FieldPatientNumber))
+}
+
+// PatientNumberNotNil applies the NotNil predicate on the "patientNumber" field.
+func PatientNumberNotNil() predicate.Treatment {
+	return predicate.Treatment(sql.FieldNotNull(FieldPatientNumber))
+}
+
 // UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
 func UpdatedAtEQ(v time.Time) predicate.Treatment {
 	return predicate.Treatment(sql.FieldEQ(FieldUpdatedAt, v))

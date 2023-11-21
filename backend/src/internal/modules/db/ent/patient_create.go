@@ -59,6 +59,14 @@ func (pc *PatientCreate) SetRoomNumber(i int) *PatientCreate {
 	return pc
 }
 
+// SetNillableRoomNumber sets the "roomNumber" field if the given value is not nil.
+func (pc *PatientCreate) SetNillableRoomNumber(i *int) *PatientCreate {
+	if i != nil {
+		pc.SetRoomNumber(*i)
+	}
+	return pc
+}
+
 // SetDegreeOfDanger sets the "degreeOfDanger" field.
 func (pc *PatientCreate) SetDegreeOfDanger(i int) *PatientCreate {
 	pc.mutation.SetDegreeOfDanger(i)
@@ -68,6 +76,14 @@ func (pc *PatientCreate) SetDegreeOfDanger(i int) *PatientCreate {
 // SetRepoID sets the "repo" edge to the Room entity by ID.
 func (pc *PatientCreate) SetRepoID(id int) *PatientCreate {
 	pc.mutation.SetRepoID(id)
+	return pc
+}
+
+// SetNillableRepoID sets the "repo" edge to the Room entity by ID if the given value is not nil.
+func (pc *PatientCreate) SetNillableRepoID(id *int) *PatientCreate {
+	if id != nil {
+		pc = pc.SetRepoID(*id)
+	}
 	return pc
 }
 
@@ -174,14 +190,8 @@ func (pc *PatientCreate) check() error {
 	if _, ok := pc.mutation.Weight(); !ok {
 		return &ValidationError{Name: "weight", err: errors.New(`ent: missing required field "Patient.weight"`)}
 	}
-	if _, ok := pc.mutation.RoomNumber(); !ok {
-		return &ValidationError{Name: "roomNumber", err: errors.New(`ent: missing required field "Patient.roomNumber"`)}
-	}
 	if _, ok := pc.mutation.DegreeOfDanger(); !ok {
 		return &ValidationError{Name: "degreeOfDanger", err: errors.New(`ent: missing required field "Patient.degreeOfDanger"`)}
-	}
-	if _, ok := pc.mutation.RepoID(); !ok {
-		return &ValidationError{Name: "repo", err: errors.New(`ent: missing required edge "Patient.repo"`)}
 	}
 	return nil
 }

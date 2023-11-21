@@ -40,6 +40,8 @@ definitions:
     properties:
       degreeOfDanger:
         type: integer
+      diseaseId:
+        type: integer
       height:
         type: integer
       id:
@@ -127,6 +129,17 @@ definitions:
       Threat:
         example: Заболел
         type: string
+    type: object
+  model.AddDiseaseToPatient:
+    properties:
+      DiseaseId:
+        example: 1
+        format: int64
+        type: integer
+      patientId:
+        example: 1
+        format: int64
+        type: integer
     type: object
   model.AddDoctor:
     properties:
@@ -1194,6 +1207,106 @@ paths:
           schema:
             $ref: '#/definitions/httputil.HTTPError'
       summary: Update a patient
+      tags:
+      - Patients
+  /patientsDisease:
+    post:
+      consumes:
+      - application/json
+      description: add Disease by json
+      parameters:
+      - description: Add doctorsPatients
+        in: body
+        name: Doctor
+        required: true
+        schema:
+          $ref: '#/definitions/model.AddDiseaseToPatient'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Disease'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Add a Disease
+      tags:
+      - Patients
+  /patientsDisease/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      parameters:
+      - description: Patient ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Disease'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Show a Patient Disease
+      tags:
+      - Patients
+  /patientsThreat/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get string by ID
+      parameters:
+      - description: Patient ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Treatment'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Show a Patient Treatment
       tags:
       - Patients
   /rooms:

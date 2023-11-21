@@ -66,6 +66,18 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 			patients.POST("", c.AddPatient)
 			patients.PATCH(":id", c.UpdatePatient)
 			patients.DELETE(":id", c.DeletePatient)
+
+		}
+
+		pDisease := v1.Group("/patientsDisease")
+		{
+			pDisease.GET(":id", c.ShowPatientDisease)
+			pDisease.POST("", c.AddDiseasePatient)
+		}
+
+		pThreat := v1.Group("/patientsThreat")
+		{
+			pThreat.GET(":id", c.ShowPatientThreat)
 		}
 
 		room := v1.Group("/rooms")
@@ -104,6 +116,7 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 			account.POST("", c.AddAccount)
 			account.PATCH(":id", c.UpdateAccount)
 			account.DELETE(":id", c.DeleteAccount)
+
 		}
 
 		doctorsPatients := v1.Group("/doctorsPatients")

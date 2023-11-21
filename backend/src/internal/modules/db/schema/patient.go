@@ -19,7 +19,7 @@ func (Patient) Fields() []ent.Field {
 		field.String("patronymic"),
 		field.Int("height"),
 		field.Float("weight"),
-		field.Int("roomNumber"),
+		field.Int("roomNumber").Optional(),
 		field.Int("degreeOfDanger"),
 	}
 }
@@ -30,8 +30,7 @@ func (Patient) Edges() []ent.Edge {
 		edge.From("repo", Room.Type).
 			Ref("contains").
 			Field("roomNumber").
-			Unique().
-			Required(),
+			Unique(),
 		edge.From("doctor", Doctor.Type).
 			Ref("treats"),
 		edge.From("ills", Disease.Type).

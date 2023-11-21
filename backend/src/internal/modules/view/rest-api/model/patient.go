@@ -30,3 +30,8 @@ type UpdatePatient struct {
 	RoomNumber     int     `json:"RoomNumber" example:"6"`
 	DegreeOfDanger int     `json:"DegreeOfDanger" example:"1"`
 }
+
+type AddDiseaseToPatient struct {
+	DiseaseId int `json:"DiseaseId" example:"1" format:"int64"`
+	PatientId int `json:"patientId" example:"1" format:"int64"`
+}

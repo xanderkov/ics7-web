@@ -18,7 +18,7 @@ func (Treatment) Fields() []ent.Field {
 		field.String("tablets"),
 		field.String("psychologicalTreatment"),
 		field.String("survey"),
-		field.Int("patientNumber"),
+		field.Int("patientNumber").Optional(),
 		field.Time("updated_at").
 			Default(time.Now).
 			UpdateDefault(time.Now),
@@ -31,7 +31,6 @@ func (Treatment) Edges() []ent.Edge {
 		edge.From("treat", Patient.Type).
 			Ref("treats").
 			Field("patientNumber").
-			Unique().
-			Required(),
+			Unique(),
 	}
 }

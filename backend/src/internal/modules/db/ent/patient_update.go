@@ -81,6 +81,20 @@ func (pu *PatientUpdate) SetRoomNumber(i int) *PatientUpdate {
 	return pu
 }
 
+// SetNillableRoomNumber sets the "roomNumber" field if the given value is not nil.
+func (pu *PatientUpdate) SetNillableRoomNumber(i *int) *PatientUpdate {
+	if i != nil {
+		pu.SetRoomNumber(*i)
+	}
+	return pu
+}
+
+// ClearRoomNumber clears the value of the "roomNumber" field.
+func (pu *PatientUpdate) ClearRoomNumber() *PatientUpdate {
+	pu.mutation.ClearRoomNumber()
+	return pu
+}
+
 // SetDegreeOfDanger sets the "degreeOfDanger" field.
 func (pu *PatientUpdate) SetDegreeOfDanger(i int) *PatientUpdate {
 	pu.mutation.ResetDegreeOfDanger()
@@ -97,6 +111,14 @@ func (pu *PatientUpdate) AddDegreeOfDanger(i int) *PatientUpdate {
 // SetRepoID sets the "repo" edge to the Room entity by ID.
 func (pu *PatientUpdate) SetRepoID(id int) *PatientUpdate {
 	pu.mutation.SetRepoID(id)
+	return pu
+}
+
+// SetNillableRepoID sets the "repo" edge to the Room entity by ID if the given value is not nil.
+func (pu *PatientUpdate) SetNillableRepoID(id *int) *PatientUpdate {
+	if id != nil {
+		pu = pu.SetRepoID(*id)
+	}
 	return pu
 }
 
@@ -240,18 +262,7 @@ func (pu *PatientUpdate) ExecX(ctx context.Context) {
 	}
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (pu *PatientUpdate) check() error {
-	if _, ok := pu.mutation.RepoID(); pu.mutation.RepoCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Patient.repo"`)
-	}
-	return nil
-}
-
 func (pu *PatientUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	if err := pu.check(); err != nil {
-		return n, err
-	}
 	_spec := sqlgraph.NewUpdateSpec(patient.Table, patient.Columns, sqlgraph.NewFieldSpec(patient.FieldID, field.TypeInt))
 	if ps := pu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -505,6 +516,20 @@ func (puo *PatientUpdateOne) SetRoomNumber(i int) *PatientUpdateOne {
 	return puo
 }
 
+// SetNillableRoomNumber sets the "roomNumber" field if the given value is not nil.
+func (puo *PatientUpdateOne) SetNillableRoomNumber(i *int) *PatientUpdateOne {
+	if i != nil {
+		puo.SetRoomNumber(*i)
+	}
+	return puo
+}
+
+// ClearRoomNumber clears the value of the "roomNumber" field.
+func (puo *PatientUpdateOne) ClearRoomNumber() *PatientUpdateOne {
+	puo.mutation.ClearRoomNumber()
+	return puo
+}
+
 // SetDegreeOfDanger sets the "degreeOfDanger" field.
 func (puo *PatientUpdateOne) SetDegreeOfDanger(i int) *PatientUpdateOne {
 	puo.mutation.ResetDegreeOfDanger()
@@ -521,6 +546,14 @@ func (puo *PatientUpdateOne) AddDegreeOfDanger(i int) *PatientUpdateOne {
 // SetRepoID sets the "repo" edge to the Room entity by ID.
 func (puo *PatientUpdateOne) SetRepoID(id int) *PatientUpdateOne {
 	puo.mutation.SetRepoID(id)
+	return puo
+}
+
+// SetNillableRepoID sets the "repo" edge to the Room entity by ID if the given value is not nil.
+func (puo *PatientUpdateOne) SetNillableRepoID(id *int) *PatientUpdateOne {
+	if id != nil {
+		puo = puo.SetRepoID(*id)
+	}
 	return puo
 }
 
@@ -677,18 +710,7 @@ func (puo *PatientUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
-// check runs all checks and user-defined validators on the builder.
-func (puo *PatientUpdateOne) check() error {
-	if _, ok := puo.mutation.RepoID(); puo.mutation.RepoCleared() && !ok {
-		return errors.New(`ent: clearing a required unique edge "Patient.repo"`)
-	}
-	return nil
-}
-
 func (puo *PatientUpdateOne) sqlSave(ctx context.Context) (_node *Patient, err error) {
-	if err := puo.check(); err != nil {
-		return _node, err
-	}
 	_spec := sqlgraph.NewUpdateSpec(patient.Table, patient.Columns, sqlgraph.NewFieldSpec(patient.FieldID, field.TypeInt))
 	id, ok := puo.mutation.ID()
 	if !ok {
