@@ -610,69 +610,6 @@ paths:
       summary: Update a Account
       tags:
       - Account
-  /accounts/authcheck:
-    get:
-      consumes:
-      - application/json
-      description: get Account
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/dto.Account'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httputil.HTTPError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/httputil.HTTPError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httputil.HTTPError'
-      summary: AuthCheck Account
-      tags:
-      - Account
-  /accounts/login:
-    post:
-      consumes:
-      - application/json
-      description: login Account by json
-      parameters:
-      - description: Login Account
-        in: body
-        name: Account
-        required: true
-        schema:
-          $ref: '#/definitions/model.AddAccount'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.Account'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httputil.HTTPError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/httputil.HTTPError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httputil.HTTPError'
-      summary: Login an Account
-      tags:
-      - Account
   /accounts/old:
     post:
       consumes:
@@ -705,6 +642,35 @@ paths:
           schema:
             $ref: '#/definitions/httputil.HTTPError'
       summary: Add a Doctor
+      tags:
+      - Account
+  /authcheck:
+    get:
+      consumes:
+      - application/json
+      description: get Account
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Account'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: AuthCheck Account
       tags:
       - Account
   /diseases:
@@ -1106,6 +1072,40 @@ paths:
       summary: Show Doctor's patients
       tags:
       - doctorsPatients
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: login Account by json
+      parameters:
+      - description: Login Account
+        in: body
+        name: Account
+        required: true
+        schema:
+          $ref: '#/definitions/model.AddAccount'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.HTTPError'
+      summary: Login an Account
+      tags:
+      - Account
   /patients:
     get:
       consumes:

@@ -199,7 +199,7 @@ func (c *Controller) AddAccount(ctx *gin.Context) {
 // @Failure      400  {object}  httputil.HTTPError
 // @Failure      404  {object}  httputil.HTTPError
 // @Failure      500  {object}  httputil.HTTPError
-// @Router       /accounts/login [post]
+// @Router       /login [post]
 func (c *Controller) LoginAccount(ctx *gin.Context) {
 	var addAccount model.AddAccount
 	if err := ctx.ShouldBindJSON(&addAccount); err != nil {
@@ -232,7 +232,7 @@ func (c *Controller) LoginAccount(ctx *gin.Context) {
 //	@Failure		400	{object}	httputil.HTTPError
 //	@Failure		404	{object}	httputil.HTTPError
 //	@Failure		500	{object}	httputil.HTTPError
-//	@Router			/accounts/authcheck [get]
+//	@Router			/authcheck [get]
 func (c *Controller) AuthCheck(ctx *gin.Context) {
 	cookie, err := ctx.Cookie("user")
 	if err != nil {

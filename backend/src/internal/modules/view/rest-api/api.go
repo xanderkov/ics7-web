@@ -36,7 +36,7 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 	address := fmt.Sprintf("0.0.0.0:%d", cfg.ApiPort)
 	logger.Info("Server started on address: " + address)
 	r := gin.Default()
-	//r.Use(CORSMiddleware())
+	r.Use(CORSMiddleware())
 	c := controller
 
 	v1 := r.Group("/api/v1")
@@ -107,9 +107,10 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 			account.PATCH(":id", c.UpdateAccount)
 			account.DELETE(":id", c.DeleteAccount)
 
-			account.POST("/login", c.LoginAccount)
-			account.GET("/authcheck", c.AuthCheck)
 		}
+
+		v1.POST("/login", c.LoginAccount)
+		v1.GET("/authcheck", c.AuthCheck)
 
 		doctorsPatients := v1.Group("/doctorsPatients")
 		{
