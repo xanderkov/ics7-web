@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"golang.org/x/crypto/bcrypt"
 	"hospital/internal/modules/db"
 	"hospital/internal/modules/db/ent"
 	"hospital/internal/modules/db/ent/account"
@@ -37,9 +38,13 @@ func (r *AccountRepo) List(ctx context.Context) (dto.Accounts, error) {
 }
 
 func (r *AccountRepo) Create(ctx context.Context, dtm *dto.CreateAccount) (*dto.Account, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dtm.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, db.WrapError(err)
+	}
 	Account, err := r.client.Account.Create().
 		SetLogin(dtm.Login).
-		SetPasswordHash(dtm.Password).
+		SetPasswordHash(string(hashedPassword)).
 		Save(ctx)
 	if err != nil {
 		return nil, db.WrapError(err)
@@ -49,10 +54,13 @@ func (r *AccountRepo) Create(ctx context.Context, dtm *dto.CreateAccount) (*dto.
 }
 
 func (r *AccountRepo) Login(ctx context.Context, dtm *dto.CreateAccount) (*dto.Account, error) {
+
 	Account, err := r.client.Account.Query().
 		Where(account.LoginEQ(dtm.Login)).
-		Where(account.PasswordHashEQ(dtm.Password)).
 		Only(ctx)
+	if bcrypt.CompareHashAndPassword([]byte(Account.PasswordHash), []byte(dtm.Password)) != nil {
+		return nil, db.WrapError(err)
+	}
 	if err != nil {
 		return nil, db.WrapError(err)
 	}

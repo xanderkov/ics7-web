@@ -215,5 +215,29 @@ func (c *Controller) LoginAccount(ctx *gin.Context) {
 		httputil.NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
+
+	ctx.SetCookie("user", Account.Login, 36000, "/", "localhost", false, true)
+
 	ctx.JSON(http.StatusOK, Account)
+}
+
+// AuthCheck godoc
+//
+//	@Summary		AuthCheck Account
+//	@Description	get Account
+//	@Tags			Account
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{array}		dto.Account
+//	@Failure		400	{object}	httputil.HTTPError
+//	@Failure		404	{object}	httputil.HTTPError
+//	@Failure		500	{object}	httputil.HTTPError
+//	@Router			/accounts/authcheck [get]
+func (c *Controller) AuthCheck(ctx *gin.Context) {
+	cookie, err := ctx.Cookie("user")
+	if err != nil {
+		ctx.String(http.StatusNotFound, "Cookie not found")
+		return
+	}
+	ctx.String(http.StatusOK, "Cookie value: %s", cookie)
 }
