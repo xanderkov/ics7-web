@@ -36,18 +36,8 @@ func api(controller *controller.Controller, cfg config.Config, logger *zap.Logge
 	address := fmt.Sprintf("0.0.0.0:%d", cfg.ApiPort)
 	logger.Info("Server started on address: " + address)
 	r := gin.Default()
-	r.Use(CORSMiddleware())
+	//r.Use(CORSMiddleware())
 	c := controller
-
-	//store := cookie.NewStore([]byte("secret"))
-	//r.Use(sessions.Sessions("mysession", store))
-	//r.Use(csrf.Middleware(csrf.Options{
-	//	Secret: "secret123",
-	//	ErrorFunc: func(c *gin.Context) {
-	//		c.String(400, "CSRF token mismatch")
-	//		c.Abort()
-	//	},
-	//}))
 
 	v1 := r.Group("/api/v1")
 	{
