@@ -216,7 +216,7 @@ func (c *Controller) LoginAccount(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("user", Account.Login, 36000, "/", "localhost", false, true)
+	ctx.SetCookie("user", Account.Login, 3600, "/", "localhost", false, true)
 
 	ctx.JSON(http.StatusOK, Account)
 }
@@ -239,5 +239,28 @@ func (c *Controller) AuthCheck(ctx *gin.Context) {
 		ctx.String(http.StatusNotFound, "Cookie not found")
 		return
 	}
+	ctx.String(http.StatusOK, "Cookie value: %s", cookie)
+}
+
+// Logout godoc
+//
+//	@Summary		Logout Account
+//	@Description	get Account
+//	@Tags			Account
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{array}		dto.Account
+//	@Failure		400	{object}	httputil.HTTPError
+//	@Failure		404	{object}	httputil.HTTPError
+//	@Failure		500	{object}	httputil.HTTPError
+//	@Router			/logout [get]
+func (c *Controller) Logout(ctx *gin.Context) {
+	cookie, err := ctx.Cookie("user")
+	if err != nil {
+		ctx.String(http.StatusNotFound, "Cookie not found")
+		return
+	}
+	ctx.SetCookie("user", "", -1, "/", "localhost", false, true)
+
 	ctx.String(http.StatusOK, "Cookie value: %s", cookie)
 }
