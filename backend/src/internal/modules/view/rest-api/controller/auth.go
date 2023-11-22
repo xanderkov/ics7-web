@@ -210,10 +210,10 @@ func (c *Controller) LoginAccount(ctx *gin.Context) {
 		Login:    addAccount.Login,
 		Password: addAccount.PasswordHash,
 	}
-	_, err := c.accountService.Login(ctx, loginAccount)
+	Account, err := c.accountService.Login(ctx, loginAccount)
 	if err != nil {
 		httputil.NewError(ctx, http.StatusBadRequest, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{})
+	ctx.JSON(http.StatusOK, Account)
 }
